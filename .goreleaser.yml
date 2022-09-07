@@ -1,0 +1,54 @@
+# Configuration for GoReleaser
+# https://goreleaser.com/
+#
+# Local test:
+#
+# docker run --rm \
+#   -v ${PWD}:/go/src/github.com/hansmi/baamhackl \
+#   -w /go/src/github.com/hansmi/baamhackl \
+#   goreleaser/goreleaser release --snapshot --rm-dist --skip-publish
+#
+
+project_name: baamhackl
+
+builds:
+  - main: .
+    binary: baamhackl
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    flags:
+      - -trimpath
+
+nfpms:
+  - description: Prometheus exporter for LVM metrics
+    maintainer: M. Hanselmann
+    bindir: /usr/bin
+    license: BSD-3-Clause
+    formats:
+      - deb
+      - rpm
+    dependencies:
+      - watchman
+    contents:
+      - src: ./README.md
+        dst: /usr/share/doc/baamhackl/README.md
+      - src: ./LICENSE
+        dst: /usr/share/doc/baamhackl/LICENSE
+
+archives:
+  - format: tar.gz
+    wrap_in_directory: true
+    files:
+      - LICENSE
+      - README.md
+
+release:
+  draft: true
+  prerelease: auto
+
+snapshot:
+  name_template: '{{ incpatch .Version }}-snapshot{{ replace (replace .Date ":" "") "-" "" }}+g{{ .ShortCommit }}'
+
+# vim: set sw=2 sts=2 et :
