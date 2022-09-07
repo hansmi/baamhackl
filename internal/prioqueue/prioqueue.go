@@ -10,11 +10,11 @@ const undefinedIndex int = math.MinInt
 
 // LessFunc returns whether the first parameter is to be considered less than
 // the second parameter.
-type LessFunc func(interface{}, interface{}) bool
+type LessFunc func(any, any) bool
 
 // Item contains a reference to an enqueued value.
 type Item struct {
-	Value interface{}
+	Value any
 	index int
 }
 
@@ -38,7 +38,7 @@ func (s heapAdapter) Swap(i, j int) {
 	s.items[j].index = j
 }
 
-func (s heapAdapter) Push(v interface{}) {
+func (s heapAdapter) Push(v any) {
 	item := v.(*Item)
 
 	if item.index != undefinedIndex {
@@ -50,7 +50,7 @@ func (s heapAdapter) Push(v interface{}) {
 	item.index = len(s.items) - 1
 }
 
-func (s heapAdapter) Pop() interface{} {
+func (s heapAdapter) Pop() any {
 	n := len(s.items)
 	item := s.items[n-1]
 
@@ -77,7 +77,7 @@ func (q *PrioQueue) Len() int {
 
 // Push inserts a new value into the queue, returning an Item pointer suitable
 // for updating or removing the value directly.
-func (q *PrioQueue) Push(value interface{}) *Item {
+func (q *PrioQueue) Push(value any) *Item {
 	item := &Item{
 		Value: value,
 		index: undefinedIndex,
@@ -89,7 +89,7 @@ func (q *PrioQueue) Push(value interface{}) *Item {
 }
 
 // Pop removes and returns the minimum value from the queue.
-func (q *PrioQueue) Pop() interface{} {
+func (q *PrioQueue) Pop() any {
 	if len(q.items) == 0 {
 		return nil
 	}
@@ -98,7 +98,7 @@ func (q *PrioQueue) Pop() interface{} {
 }
 
 // Peek returns the minimum value in the queue.
-func (q *PrioQueue) Peek() interface{} {
+func (q *PrioQueue) Peek() any {
 	if len(q.items) == 0 {
 		return nil
 	}

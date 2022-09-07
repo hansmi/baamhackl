@@ -94,8 +94,8 @@ func (t *multifileTest) Name() string {
 	return "multifile"
 }
 
-func (t *multifileTest) HandlerConfig() map[string]interface{} {
-	return map[string]interface{}{
+func (t *multifileTest) HandlerConfig() map[string]any {
+	return map[string]any{
 		"name":                t.Name(),
 		"path":                t.dir,
 		"retry_count":         100,

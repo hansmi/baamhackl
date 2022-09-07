@@ -83,7 +83,7 @@ type Handler struct {
 
 var _ yaml.InterfaceUnmarshaler = (*Handler)(nil)
 
-func (h *Handler) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (h *Handler) UnmarshalYAML(unmarshal func(any) error) error {
 	*h = HandlerDefaults
 
 	type handler Handler

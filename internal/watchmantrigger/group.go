@@ -52,7 +52,7 @@ func (s *triggerSetter) do(ctx context.Context, h *config.Handler) error {
 		return err
 	}
 
-	args := map[string]interface{}{
+	args := map[string]any{
 		"name":       h.Name,
 		"expression": cfg.expression,
 		"stdin":      watchman.FileChangeFields,

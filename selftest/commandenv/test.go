@@ -43,8 +43,8 @@ func (t *commandEnvTest) Name() string {
 	return "command environment"
 }
 
-func (t *commandEnvTest) HandlerConfig() map[string]interface{} {
-	return map[string]interface{}{
+func (t *commandEnvTest) HandlerConfig() map[string]any {
+	return map[string]any{
 		"name":        t.Name(),
 		"path":        t.dir,
 		"retry_count": 0,

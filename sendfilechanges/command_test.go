@@ -18,7 +18,7 @@ type fakeCaller struct {
 	calls []service.FileChangedRequest
 }
 
-func (c *fakeCaller) Call(method string, args interface{}, reply interface{}) error {
+func (c *fakeCaller) Call(method string, args any, reply any) error {
 	c.calls = append(c.calls, args.(service.FileChangedRequest))
 	return nil
 }

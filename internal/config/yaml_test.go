@@ -22,7 +22,7 @@ func (ts marshalTestSlice) run(t *testing.T) {
 type marshalTest struct {
 	name    string
 	input   string
-	want    interface{}
+	want    any
 	wantErr *regexp.Regexp
 }
 

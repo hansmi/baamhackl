@@ -8,7 +8,7 @@ type process struct {
 
 func newProcessQueue() *PrioQueue {
 	return &PrioQueue{
-		Less: func(a interface{}, b interface{}) bool {
+		Less: func(a any, b any) bool {
 			return a.(*process).priority < b.(*process).priority
 		},
 	}

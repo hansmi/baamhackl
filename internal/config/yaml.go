@@ -9,7 +9,7 @@ import (
 
 var ErrMultipleFragments = errors.New("input contained multiple YAML fragments")
 
-func validatedUnmarshal(r io.Reader, v interface{}) error {
+func validatedUnmarshal(r io.Reader, v any) error {
 	opts := []yaml.DecodeOption{
 		yaml.Strict(),
 		yaml.Validator(customValidate.get()),
@@ -28,7 +28,7 @@ func validatedUnmarshal(r io.Reader, v interface{}) error {
 	return nil
 }
 
-func marshal(w io.Writer, v interface{}) error {
+func marshal(w io.Writer, v any) error {
 	opts := []yaml.EncodeOption{
 		yaml.Flow(false),
 		yaml.Indent(2),

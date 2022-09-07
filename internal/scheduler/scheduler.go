@@ -52,7 +52,7 @@ func New() *Scheduler {
 		slots: runtime.NumCPU(),
 
 		tasksByOrder: prioqueue.PrioQueue{
-			Less: func(a, b interface{}) bool {
+			Less: func(a, b any) bool {
 				lhs := a.(*Task)
 				rhs := b.(*Task)
 
@@ -60,7 +60,7 @@ func New() *Scheduler {
 			},
 		},
 		tasksByTime: prioqueue.PrioQueue{
-			Less: func(a, b interface{}) bool {
+			Less: func(a, b any) bool {
 				lhs := a.(*Task)
 				rhs := b.(*Task)
 

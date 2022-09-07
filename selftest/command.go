@@ -61,7 +61,7 @@ func (c *Command) execute(ctx context.Context) error {
 	return err
 }
 
-func (c *Command) Execute(ctx context.Context, fs *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func (c *Command) Execute(ctx context.Context, fs *flag.FlagSet, _ ...any) subcommands.ExitStatus {
 	if fs.NArg() > 0 {
 		fs.Usage()
 		return subcommands.ExitUsageError

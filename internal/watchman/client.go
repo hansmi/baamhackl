@@ -22,7 +22,7 @@ type Client interface {
 	Ping(ctx context.Context) error
 	WatchSet(ctx context.Context, root string) error
 	Recrawl(ctx context.Context, root string) error
-	TriggerSet(ctx context.Context, root string, args interface{}) error
+	TriggerSet(ctx context.Context, root string, args any) error
 	TriggerDel(ctx context.Context, root, name string) error
 	ShutdownServer(ctx context.Context) error
 }
@@ -40,7 +40,7 @@ func defaultClientCommand(base []string) []string {
 	)
 }
 
-func runClient(ctx context.Context, args []string, input interface{}) (err error) {
+func runClient(ctx context.Context, args []string, input any) (err error) {
 	logger := zap.L().Named(fmt.Sprintf("watchman %x", rand.Int31()))
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -79,7 +79,7 @@ func runClient(ctx context.Context, args []string, input interface{}) (err error
 		return err
 	}
 
-	var response map[string]interface{}
+	var response map[string]any
 
 	decodeErr := json.NewDecoder(stdout).Decode(&response)
 
@@ -114,7 +114,7 @@ func NewCommandClient(base []string) *CommandClient {
 	}
 }
 
-func (c *CommandClient) run(ctx context.Context, args []string, input interface{}) error {
+func (c *CommandClient) run(ctx context.Context, args []string, input any) error {
 	return runClient(ctx, append(append([]string(nil), c.Args...), args...), input)
 }
 
@@ -134,8 +134,8 @@ func (c *CommandClient) Recrawl(ctx context.Context, root string) error {
 	return c.run(ctx, []string{"debug-recrawl", filepath.Clean(root)}, nil)
 }
 
-func (c *CommandClient) TriggerSet(ctx context.Context, root string, descriptor interface{}) error {
-	if err := c.run(ctx, []string{"trigger", "--json-command"}, []interface{}{
+func (c *CommandClient) TriggerSet(ctx context.Context, root string, descriptor any) error {
+	if err := c.run(ctx, []string{"trigger", "--json-command"}, []any{
 		"trigger",
 		filepath.Clean(root),
 		descriptor,

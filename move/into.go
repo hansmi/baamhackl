@@ -69,7 +69,7 @@ func (c *IntoCommand) execute(targetDir string, sourceFiles []string) error {
 	return nil
 }
 
-func (c *IntoCommand) Execute(ctx context.Context, fs *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func (c *IntoCommand) Execute(ctx context.Context, fs *flag.FlagSet, _ ...any) subcommands.ExitStatus {
 	if fs.NArg() < 2 {
 		fs.Usage()
 

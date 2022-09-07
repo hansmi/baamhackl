@@ -43,8 +43,8 @@ func (c *fakeClient) Recrawl(ctx context.Context, root string) error {
 	return nil
 }
 
-func (c *fakeClient) TriggerSet(ctx context.Context, root string, args interface{}) error {
-	name := args.(map[string]interface{})["name"].(string)
+func (c *fakeClient) TriggerSet(ctx context.Context, root string, args any) error {
+	name := args.(map[string]any)["name"].(string)
 
 	c.mu.Lock()
 	defer c.mu.Unlock()

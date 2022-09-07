@@ -27,7 +27,7 @@ func TestNewTriggerConfig(t *testing.T) {
 			}(),
 			want: &triggerConfig{
 				configFilePath: filepath.Join(tmpdir, configFileLocalScope),
-				configData: map[string]interface{}{
+				configData: map[string]any{
 					"gc_age_seconds":        3600,
 					"gc_interval_seconds":   3600,
 					"idle_reap_age_seconds": 60,
@@ -39,18 +39,18 @@ func TestNewTriggerConfig(t *testing.T) {
 					"settle":                    1000,
 					"suppress_recrawl_warnings": true,
 				},
-				expression: []interface{}{
+				expression: []any{
 					"allof",
 					[]string{"exists"},
 					[]string{"type", "f"},
 
-					[]interface{}{"dirname", "", []interface{}{"depth", "eq", 0}},
+					[]any{"dirname", "", []any{"depth", "eq", 0}},
 
-					[]interface{}{"not", []string{"dirname", "_/failure"}},
-					[]interface{}{"not", []string{"dirname", "_/journal"}},
-					[]interface{}{"not", []string{"dirname", "_/success"}},
+					[]any{"not", []string{"dirname", "_/failure"}},
+					[]any{"not", []string{"dirname", "_/journal"}},
+					[]any{"not", []string{"dirname", "_/success"}},
 
-					[]interface{}{"not", []string{"match", ".*", "basename"}},
+					[]any{"not", []string{"match", ".*", "basename"}},
 				},
 			},
 		},
@@ -67,7 +67,7 @@ func TestNewTriggerConfig(t *testing.T) {
 			}(),
 			want: &triggerConfig{
 				configFilePath: filepath.Join(tmpdir, configFileLocalScope),
-				configData: map[string]interface{}{
+				configData: map[string]any{
 					"gc_age_seconds":        3600,
 					"gc_interval_seconds":   3600,
 					"idle_reap_age_seconds": 60,
@@ -79,17 +79,17 @@ func TestNewTriggerConfig(t *testing.T) {
 					"settle":                    1000,
 					"suppress_recrawl_warnings": true,
 				},
-				expression: []interface{}{
+				expression: []any{
 					"allof",
 					[]string{"exists"},
 					[]string{"type", "f"},
 
-					[]interface{}{"not", []string{"dirname", "_/failure"}},
-					[]interface{}{"not", []string{"dirname", "_/journal"}},
-					[]interface{}{"not", []string{"dirname", "_/success"}},
+					[]any{"not", []string{"dirname", "_/failure"}},
+					[]any{"not", []string{"dirname", "_/journal"}},
+					[]any{"not", []string{"dirname", "_/success"}},
 
-					[]interface{}{"size", "ge", uint64(128)},
-					[]interface{}{"size", "le", uint64(1024)},
+					[]any{"size", "ge", uint64(128)},
+					[]any{"size", "le", uint64(1024)},
 				},
 			},
 		},
@@ -105,7 +105,7 @@ func TestNewTriggerConfig(t *testing.T) {
 			}(),
 			want: &triggerConfig{
 				configFilePath: filepath.Join(tmpdir, configFileLocalScope),
-				configData: map[string]interface{}{
+				configData: map[string]any{
 					"gc_age_seconds":        3600,
 					"gc_interval_seconds":   3600,
 					"idle_reap_age_seconds": 60,
@@ -117,18 +117,18 @@ func TestNewTriggerConfig(t *testing.T) {
 					"settle":                    1000,
 					"suppress_recrawl_warnings": true,
 				},
-				expression: []interface{}{
+				expression: []any{
 					"allof",
 					[]string{"exists"},
 					[]string{"type", "f"},
 
-					[]interface{}{"dirname", "", []interface{}{"depth", "eq", 0}},
+					[]any{"dirname", "", []any{"depth", "eq", 0}},
 
-					[]interface{}{"not", []string{"dirname", "bad"}},
-					[]interface{}{"not", []string{"dirname", "good"}},
-					[]interface{}{"not", []string{"dirname", "log"}},
+					[]any{"not", []string{"dirname", "bad"}},
+					[]any{"not", []string{"dirname", "good"}},
+					[]any{"not", []string{"dirname", "log"}},
 
-					[]interface{}{"not", []string{"match", ".*", "basename"}},
+					[]any{"not", []string{"match", ".*", "basename"}},
 				},
 			},
 		},
@@ -144,7 +144,7 @@ func TestNewTriggerConfig(t *testing.T) {
 			}(),
 			want: &triggerConfig{
 				configFilePath: filepath.Join(tmpdir, configFileLocalScope),
-				configData: map[string]interface{}{
+				configData: map[string]any{
 					"gc_age_seconds":            3600,
 					"gc_interval_seconds":       3600,
 					"idle_reap_age_seconds":     60,
@@ -152,14 +152,14 @@ func TestNewTriggerConfig(t *testing.T) {
 					"settle":                    1000,
 					"suppress_recrawl_warnings": true,
 				},
-				expression: []interface{}{
+				expression: []any{
 					"allof",
 					[]string{"exists"},
 					[]string{"type", "f"},
 
-					[]interface{}{"dirname", "", []interface{}{"depth", "eq", 0}},
+					[]any{"dirname", "", []any{"depth", "eq", 0}},
 
-					[]interface{}{"not", []string{"match", ".*", "basename"}},
+					[]any{"not", []string{"match", ".*", "basename"}},
 				},
 			},
 		},

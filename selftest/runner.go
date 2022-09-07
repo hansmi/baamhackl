@@ -21,12 +21,12 @@ import (
 
 type test interface {
 	Name() string
-	HandlerConfig() map[string]interface{}
+	HandlerConfig() map[string]any
 	Setup() error
 	Run(context.Context) error
 }
 
-func writeConfig(dir string, data interface{}) (string, error) {
+func writeConfig(dir string, data any) (string, error) {
 	fh, err := os.CreateTemp(dir, "config*")
 	if err != nil {
 		return "", err
@@ -77,14 +77,14 @@ func newRunner(dir string) (*runner, error) {
 	return r, nil
 }
 
-func (r *runner) generateConfig() interface{} {
-	var handlers []interface{}
+func (r *runner) generateConfig() any {
+	var handlers []any
 
 	for _, t := range r.tests {
 		handlers = append(handlers, t.HandlerConfig())
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"handlers": handlers,
 	}
 }

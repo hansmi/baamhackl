@@ -11,31 +11,31 @@ import (
 )
 
 // Build the Watchman query expression for a handler.
-func makeQueryExpression(h config.Handler, ignoreDirs []string) []interface{} {
-	expr := []interface{}{
+func makeQueryExpression(h config.Handler, ignoreDirs []string) []any {
+	expr := []any{
 		"allof",
 		[]string{"exists"},
 		[]string{"type", "f"},
 	}
 
 	if !h.Recursive {
-		expr = append(expr, []interface{}{"dirname", "", []interface{}{"depth", "eq", 0}})
+		expr = append(expr, []any{"dirname", "", []any{"depth", "eq", 0}})
 	}
 
 	for _, i := range ignoreDirs {
-		expr = append(expr, []interface{}{"not", []string{"dirname", i}})
+		expr = append(expr, []any{"not", []string{"dirname", i}})
 	}
 
 	if !h.IncludeHidden {
-		expr = append(expr, []interface{}{"not", []string{"match", ".*", "basename"}})
+		expr = append(expr, []any{"not", []string{"match", ".*", "basename"}})
 	}
 
 	if h.MinSizeBytes > 0 {
-		expr = append(expr, []interface{}{"size", "ge", h.MinSizeBytes})
+		expr = append(expr, []any{"size", "ge", h.MinSizeBytes})
 	}
 
 	if h.MaxSizeBytes > 0 {
-		expr = append(expr, []interface{}{"size", "le", h.MaxSizeBytes})
+		expr = append(expr, []any{"size", "le", h.MaxSizeBytes})
 	}
 
 	return expr
@@ -43,8 +43,8 @@ func makeQueryExpression(h config.Handler, ignoreDirs []string) []interface{} {
 
 type triggerConfig struct {
 	configFilePath string
-	configData     map[string]interface{}
-	expression     interface{}
+	configData     map[string]any
+	expression     any
 }
 
 func newTriggerConfig(h config.Handler) (*triggerConfig, error) {
@@ -68,7 +68,7 @@ func newTriggerConfig(h config.Handler) (*triggerConfig, error) {
 		configFilePath: filepath.Join(h.Path, configFileLocalScope),
 
 		// https://facebook.github.io/watchman/docs/config.html
-		configData: map[string]interface{}{
+		configData: map[string]any{
 			// Number of milliseconds the filesystem should be idle before
 			// dispatching triggers.
 			"settle": int(h.SettleDuration.Milliseconds()),

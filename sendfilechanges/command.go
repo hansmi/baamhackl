@@ -18,7 +18,7 @@ import (
 )
 
 type serviceCaller interface {
-	Call(string, interface{}, interface{}) error
+	Call(string, any, any) error
 }
 
 // Command implements the "send-file-changes" subcommand.
@@ -114,7 +114,7 @@ func (c *Command) execute(socketPath string) (err error) {
 	return nil
 }
 
-func (c *Command) Execute(ctx context.Context, fs *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func (c *Command) Execute(ctx context.Context, fs *flag.FlagSet, _ ...any) subcommands.ExitStatus {
 	if fs.NArg() != 1 {
 		fs.Usage()
 		return subcommands.ExitUsageError

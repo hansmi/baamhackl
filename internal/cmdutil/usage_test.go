@@ -36,7 +36,7 @@ func (c *fakeCommand) SetFlags(fs *flag.FlagSet) {
 	}
 }
 
-func (c *fakeCommand) Execute(context.Context, *flag.FlagSet, ...interface{}) subcommands.ExitStatus {
+func (c *fakeCommand) Execute(context.Context, *flag.FlagSet, ...any) subcommands.ExitStatus {
 	panic("not implemented")
 }
 
