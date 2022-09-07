@@ -86,10 +86,10 @@ configuration objects. Each handler supports the following options:
 | `success_dir` | `_/success` | Path[^pathdirs] to directory into which successfully handled files are moved. |
 | `failure_dir` | `_/failure` | Path[^pathdirs] to directory for files for which the command failed persistently. |
 
-[^pathdirs]: Relative paths are interpreted relative to the `path` option.
-  Absolute paths are also supported. Directories beneath `path` are
-  automatically created if necessary. All paths for a handler must reside on
-  the same filesystem for atomic file moves.
+[^pathdirs]: Relative paths in handler configurations are interpreted relative
+  to the `path` option. Absolute paths are also supported. Directories beneath
+  `path` are automatically created if necessary. All paths for a handler must
+  reside on the same filesystem for atomic file moves.
 
 
 ## Handler command
