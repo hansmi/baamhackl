@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/cenkalti/backoff/v4 v4.1.3
-	github.com/go-playground/validator/v10 v10.11.0
+	github.com/go-playground/validator/v10 v10.11.1
 	github.com/goccy/go-yaml v1.9.5
 	github.com/gofrs/flock v0.8.1
 	github.com/google/go-cmp v0.5.9
