@@ -57,8 +57,10 @@ func captureOutput(ctx context.Context, t *testing.T, args []string, stdin strin
 
 	if err := cmd.Run(); err != nil {
 		t.Errorf("Command %q failed: %s\n%s", cmd.Args, err, buf.String())
-	} else {
+	} else if buf.Len() > 0 {
 		t.Logf("Command %q output:\n%s", cmd.Args, buf.String())
+	} else {
+		t.Logf("Command %q succeeded", cmd.Args)
 	}
 
 	return buf.String()
