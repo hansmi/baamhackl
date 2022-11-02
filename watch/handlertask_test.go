@@ -134,7 +134,7 @@ func TestHandlerTaskRun(t *testing.T) {
 					t.Errorf("Task delay diff (-want +got):\n%s", diff)
 				}
 
-				testutil.MustLstat(t, filepath.Join(task.journalDir, "log.ndjson"))
+				testutil.MustLstat(t, filepath.Join(task.journalDir, "log.txt"))
 				if st := testutil.MustLstat(t, filepath.Join(task.journalDir, fmt.Sprint(attempt))); !st.IsDir() {
 					t.Errorf("Not a directory: %+v", st)
 				}

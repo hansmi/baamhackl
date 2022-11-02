@@ -64,7 +64,7 @@ func (t *handlerTask) run(ctx context.Context, acquireLock func()) error {
 		Parent: logger,
 
 		// The same log file is used for all attempts.
-		Path: filepath.Join(t.journalDir, "log.ndjson"),
+		Path: filepath.Join(t.journalDir, "log.txt"),
 	}
 
 	retryDelay := t.retry.current()
