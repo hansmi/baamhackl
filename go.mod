@@ -11,7 +11,7 @@ require (
 	github.com/google/subcommands v1.2.0
 	github.com/jonboulle/clockwork v0.3.0
 	github.com/mitchellh/go-wordwrap v1.0.1
-	github.com/rivo/uniseg v0.4.2
+	github.com/rivo/uniseg v0.4.3
 	github.com/spf13/afero v1.9.2
 	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.23.0
