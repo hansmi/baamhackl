@@ -3,7 +3,7 @@ module github.com/hansmi/baamhackl
 go 1.19
 
 require (
-	github.com/cenkalti/backoff/v4 v4.1.3
+	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/goccy/go-yaml v1.9.6
 	github.com/gofrs/flock v0.8.1
