@@ -1,12 +1,7 @@
 # Configuration for GoReleaser
 # https://goreleaser.com/
 #
-# Local test:
-#
-# docker run --rm \
-#   -v ${PWD}:/go/src/github.com/hansmi/baamhackl \
-#   -w /go/src/github.com/hansmi/baamhackl \
-#   goreleaser/goreleaser release --snapshot --rm-dist --skip-publish
+# Local test: contrib/build-all
 #
 
 project_name: baamhackl
@@ -43,6 +38,26 @@ archives:
     files:
       - LICENSE
       - README.md
+
+dockers:
+  - ids:
+      - baamhackl
+    use: buildx
+    dockerfile: contrib/Dockerfile.goreleaser
+    extra_files:
+      - LICENSE
+      - README.md
+    image_templates:
+      - ghcr.io/hansmi/baamhackl:{{.Tag}}
+      - ghcr.io/hansmi/baamhackl:v{{.Major}}
+      - ghcr.io/hansmi/baamhackl:latest
+    build_flag_templates:
+      - --pull
+      - --label=org.opencontainers.image.created={{.Date}}
+      - --label=org.opencontainers.image.name={{.ProjectName}}
+      - --label=org.opencontainers.image.revision={{.FullCommit}}
+      - --label=org.opencontainers.image.version={{.Version}}
+      - --label=org.opencontainers.image.source={{.GitURL}}
 
 release:
   draft: true

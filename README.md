@@ -131,6 +131,31 @@ Pre-built binaries are provided for [all releases][releases]:
 * Debian/Ubuntu (`.deb`)
 * RHEL/Fedora (`.rpm`)
 
+Docker image via GitHub's container registry:
+
+```shell
+docker pull ghcr.io/hansmi/baamhackl
+```
+
+Note that the image only contains Baamhackl itself and none of its
+dependencies. Combine the image with another in a multi-stage build. Example
+using [Debian](https://www.debian.org/):
+
+```dockerfile
+FROM ghcr.io/hansmi/baamhackl:latest AS baamhackl
+
+FROM docker.io/library/debian:stable
+
+RUN \
+  apt-get update && \
+  apt-get install -y watchman && \
+  apt-get clean
+
+COPY --from=baamhackl /baamhackl /usr/bin/baamhackl
+
+RUN baamhackl selftest
+```
+
 With the source being available it's also possible to produce custom builds
 directly using [Go](https://go.dev/) or [GoReleaser](https://goreleaser.com/).
 
