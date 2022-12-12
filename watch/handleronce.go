@@ -25,7 +25,7 @@ func validateChangedFile(path string) (os.FileInfo, error) {
 	}
 
 	if !fi.Mode().IsRegular() {
-		return nil, fmt.Errorf("not a regular file (%s): %w", fi.Mode().Type(), os.ErrInvalid)
+		return nil, fmt.Errorf("%w: not a regular file: %s", os.ErrInvalid, fi.Mode().Type())
 	}
 
 	return fi, nil
