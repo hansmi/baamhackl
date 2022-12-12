@@ -1,4 +1,4 @@
-package watch
+package handlerretrystrategy
 
 import (
 	"math"
@@ -8,15 +8,15 @@ import (
 	"github.com/hansmi/baamhackl/internal/scheduler"
 )
 
-type handlerRetryStrategy struct {
+type Strategy struct {
 	remaining int
 	delay     time.Duration
 	factor    float64
 	max       time.Duration
 }
 
-func newHandlerRetryStrategy(cfg config.Handler) *handlerRetryStrategy {
-	return &handlerRetryStrategy{
+func New(cfg config.Handler) *Strategy {
+	return &Strategy{
 		remaining: cfg.RetryCount,
 		delay:     cfg.RetryDelayInitial,
 		factor:    cfg.RetryDelayFactor,
@@ -24,7 +24,7 @@ func newHandlerRetryStrategy(cfg config.Handler) *handlerRetryStrategy {
 	}
 }
 
-func (r *handlerRetryStrategy) advance() {
+func (r *Strategy) Advance() {
 	if r.remaining < 0 {
 		return
 	}
@@ -39,7 +39,7 @@ func (r *handlerRetryStrategy) advance() {
 	r.remaining--
 }
 
-func (r *handlerRetryStrategy) current() time.Duration {
+func (r *Strategy) Current() time.Duration {
 	if r.remaining <= 0 {
 		return scheduler.Stop
 	}

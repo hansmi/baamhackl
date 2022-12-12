@@ -1,4 +1,4 @@
-package watch
+package handlerretrystrategy
 
 import (
 	"testing"
@@ -10,7 +10,7 @@ import (
 	"github.com/hansmi/baamhackl/internal/scheduler"
 )
 
-func TestHandlerRetryStrategy(t *testing.T) {
+func TestStrategy(t *testing.T) {
 	for _, tc := range []struct {
 		name string
 		cfg  config.Handler
@@ -50,13 +50,13 @@ func TestHandlerRetryStrategy(t *testing.T) {
 				want = append(want, scheduler.Stop)
 			}
 
-			r := newHandlerRetryStrategy(tc.cfg)
+			r := New(tc.cfg)
 
 			var got []time.Duration
 
 			for range want {
-				got = append(got, r.current())
-				r.advance()
+				got = append(got, r.Current())
+				r.Advance()
 			}
 
 			if diff := cmp.Diff(want, got, cmpopts.EquateApproxTime(time.Millisecond)); diff != "" {

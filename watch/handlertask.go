@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/hansmi/baamhackl/internal/config"
+	"github.com/hansmi/baamhackl/internal/handlerretrystrategy"
 	"github.com/hansmi/baamhackl/internal/scheduler"
 	"github.com/hansmi/baamhackl/internal/teelog"
 	"github.com/hansmi/baamhackl/internal/waryio"
@@ -21,7 +22,7 @@ type handlerTask struct {
 	// Name of modified file
 	name string
 
-	retry          *handlerRetryStrategy
+	retry          *handlerretrystrategy.Strategy
 	currentAttempt int
 	journalDir     string
 	fuzzFactor     float32
@@ -57,7 +58,7 @@ func (t *handlerTask) run(ctx context.Context, acquireLock func()) error {
 	}
 
 	if t.retry == nil {
-		t.retry = newHandlerRetryStrategy(*t.cfg)
+		t.retry = handlerretrystrategy.New(*t.cfg)
 	}
 
 	taskLogger := teelog.File{
@@ -67,7 +68,7 @@ func (t *handlerTask) run(ctx context.Context, acquireLock func()) error {
 		Path: filepath.Join(t.journalDir, "log.txt"),
 	}
 
-	retryDelay := t.retry.current()
+	retryDelay := t.retry.Current()
 	var permanent bool
 
 	err := taskLogger.Wrap(func(inner *zap.Logger) error {
@@ -105,7 +106,7 @@ func (t *handlerTask) run(ctx context.Context, acquireLock func()) error {
 		return err
 	}
 
-	t.retry.advance()
+	t.retry.Advance()
 
 	return &scheduler.TaskError{
 		Err:        err,
