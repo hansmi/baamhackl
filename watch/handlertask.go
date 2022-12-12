@@ -9,6 +9,7 @@ import (
 
 	"github.com/hansmi/baamhackl/internal/config"
 	"github.com/hansmi/baamhackl/internal/handlerretrystrategy"
+	"github.com/hansmi/baamhackl/internal/journal"
 	"github.com/hansmi/baamhackl/internal/scheduler"
 	"github.com/hansmi/baamhackl/internal/teelog"
 	"github.com/hansmi/baamhackl/internal/waryio"
@@ -17,7 +18,7 @@ import (
 
 type handlerTask struct {
 	cfg     *config.Handler
-	journal *journal
+	journal *journal.Journal
 
 	// Name of modified file
 	name string
@@ -32,7 +33,7 @@ type handlerTask struct {
 
 func (t *handlerTask) ensureJournalDir() error {
 	if t.journalDir == "" {
-		path, err := t.journal.createTaskDir(t.name)
+		path, err := t.journal.CreateTaskDir(t.name)
 		if err != nil {
 			return fmt.Errorf("creating journal directory failed: %w", err)
 		}

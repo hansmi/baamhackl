@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/hansmi/baamhackl/internal/config"
+	"github.com/hansmi/baamhackl/internal/journal"
 	"github.com/hansmi/baamhackl/internal/scheduler"
 	"github.com/hansmi/baamhackl/internal/service"
 	"github.com/hansmi/baamhackl/internal/waryio"
@@ -18,7 +19,7 @@ type handler struct {
 	name    string
 	cfg     *config.Handler
 	pending map[string]*handlerTask
-	journal *journal
+	journal *journal.Journal
 
 	invoke func(context.Context, *handlerTask, func()) error
 }
@@ -27,7 +28,7 @@ func newHandler(cfg *config.Handler) *handler {
 	return &handler{
 		name:    cfg.Name,
 		cfg:     cfg,
-		journal: newJournal(cfg),
+		journal: journal.New(cfg),
 		pending: map[string]*handlerTask{},
 		invoke: func(ctx context.Context, t *handlerTask, acquireLock func()) error {
 			return t.run(ctx, acquireLock)
@@ -103,5 +104,5 @@ func (h *handler) prune(ctx context.Context) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	return h.journal.prune(ctx, zap.L())
+	return h.journal.Prune(ctx, zap.L())
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hansmi/baamhackl/internal/config"
+	"github.com/hansmi/baamhackl/internal/journal"
 	"github.com/hansmi/baamhackl/internal/scheduler"
 	"github.com/hansmi/baamhackl/internal/testutil"
 )
@@ -20,7 +21,7 @@ func TestHandlerTaskEnsureJournalDir(t *testing.T) {
 
 	task := &handlerTask{
 		cfg:     &cfg,
-		journal: newJournal(&cfg),
+		journal: journal.New(&cfg),
 		name:    "test.txt",
 	}
 
@@ -98,7 +99,7 @@ func TestHandlerTaskRun(t *testing.T) {
 
 			task := &handlerTask{
 				cfg:     &cfg,
-				journal: newJournal(&cfg),
+				journal: journal.New(&cfg),
 				name:    "test.txt",
 				invoke: func(ctx context.Context, o *handlerOnce) (bool, error) {
 					testutil.MustLstat(t, o.changedFile)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/hansmi/baamhackl/internal/config"
 	"github.com/hansmi/baamhackl/internal/handlercommand"
+	"github.com/hansmi/baamhackl/internal/journal"
 	"github.com/hansmi/baamhackl/internal/uniquename"
 	"github.com/hansmi/baamhackl/internal/waryio"
 	"go.uber.org/multierr"
@@ -56,7 +57,7 @@ func (o *handlerOnce) moveToArchive(success bool) error {
 
 	src := o.changedFile
 
-	g, err := uniquename.New(filepath.Join(destDirClean, filepath.Base(src)), archiveNamingOptions)
+	g, err := uniquename.New(filepath.Join(destDirClean, filepath.Base(src)), journal.ArchiveNamingOptions)
 	if err != nil {
 		return err
 	}

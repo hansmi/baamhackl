@@ -1,4 +1,4 @@
-package watch
+package journal
 
 import (
 	"context"
@@ -14,15 +14,15 @@ import (
 	"go.uber.org/zap"
 )
 
-var archiveNamingOptions = uniquename.DefaultOptions
+var ArchiveNamingOptions = uniquename.DefaultOptions
 
-type journal struct {
+type Journal struct {
 	cfg            *config.Handler
 	taskDirOptions uniquename.Options
 }
 
-func newJournal(cfg *config.Handler) *journal {
-	j := &journal{
+func New(cfg *config.Handler) *Journal {
+	j := &Journal{
 		cfg:            cfg,
 		taskDirOptions: uniquename.DefaultOptions,
 	}
@@ -30,11 +30,11 @@ func newJournal(cfg *config.Handler) *journal {
 	return j
 }
 
-func (j *journal) ensureDir(path string) (string, error) {
+func (j *Journal) ensureDir(path string) (string, error) {
 	return waryio.EnsureRelDir(j.cfg.Path, path, os.ModePerm)
 }
 
-func (j *journal) createTaskDir(hint string) (string, error) {
+func (j *Journal) CreateTaskDir(hint string) (string, error) {
 	base, err := j.ensureDir(j.cfg.JournalDir)
 	if err != nil {
 		return "", err
@@ -48,7 +48,7 @@ func (j *journal) createTaskDir(hint string) (string, error) {
 	return waryio.MakeAvailableDir(g)
 }
 
-func (j *journal) prune(ctx context.Context, logger *zap.Logger) error {
+func (j *Journal) Prune(ctx context.Context, logger *zap.Logger) error {
 	deadline := time.Now().Add(-j.cfg.JournalRetention).Truncate(time.Minute)
 
 	type info struct {
@@ -58,8 +58,8 @@ func (j *journal) prune(ctx context.Context, logger *zap.Logger) error {
 
 	all := []*info{
 		{j.cfg.JournalDir, j.taskDirOptions},
-		{j.cfg.SuccessDir, archiveNamingOptions},
-		{j.cfg.FailureDir, archiveNamingOptions},
+		{j.cfg.SuccessDir, ArchiveNamingOptions},
+		{j.cfg.FailureDir, ArchiveNamingOptions},
 	}
 
 	var dirNames []string
