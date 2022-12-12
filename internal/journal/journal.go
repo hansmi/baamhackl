@@ -15,7 +15,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var ArchiveNamingOptions = uniquename.DefaultOptions
+var archiveNamingOptions = uniquename.DefaultOptions
 
 type Journal struct {
 	cfg            *config.Handler
@@ -53,6 +53,26 @@ func (j *Journal) CreateTaskDir(hint string) (string, error) {
 	return waryio.MakeAvailableDir(g)
 }
 
+func (j *Journal) MoveToArchive(path string, success bool) (string, error) {
+	destDir := j.cfg.FailureDir
+
+	if success {
+		destDir = j.cfg.SuccessDir
+	}
+
+	destDirClean, err := j.ensureDir(destDir)
+	if err != nil {
+		return "", err
+	}
+
+	g, err := uniquename.New(filepath.Join(destDirClean, filepath.Base(path)), archiveNamingOptions)
+	if err != nil {
+		return "", err
+	}
+
+	return waryio.RenameToAvailableName(path, g)
+}
+
 func (j *Journal) Prune(ctx context.Context, logger *zap.Logger) error {
 	deadline := time.Now().Add(-j.cfg.JournalRetention).Truncate(time.Minute)
 
@@ -63,8 +83,8 @@ func (j *Journal) Prune(ctx context.Context, logger *zap.Logger) error {
 
 	all := []*info{
 		{j.cfg.JournalDir, j.taskDirOptions},
-		{j.cfg.SuccessDir, ArchiveNamingOptions},
-		{j.cfg.FailureDir, ArchiveNamingOptions},
+		{j.cfg.SuccessDir, archiveNamingOptions},
+		{j.cfg.FailureDir, archiveNamingOptions},
 	}
 
 	var dirNames []string

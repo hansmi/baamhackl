@@ -86,6 +86,7 @@ func (t *handlerTask) run(ctx context.Context, acquireLock func()) error {
 
 		permanent, err = t.invoke(ctx, &handlerOnce{
 			cfg:         t.cfg,
+			journal:     t.journal,
 			changedFile: filepath.Join(t.cfg.Path, t.name),
 			baseDir:     taskDir,
 

@@ -11,6 +11,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hansmi/baamhackl/internal/config"
 	"github.com/hansmi/baamhackl/internal/handlercommand"
+	"github.com/hansmi/baamhackl/internal/journal"
 	"github.com/hansmi/baamhackl/internal/testutil"
 	"github.com/hansmi/baamhackl/internal/waryio"
 	"go.uber.org/zap"
@@ -184,6 +185,9 @@ func TestHandlerOnce(t *testing.T) {
 
 			if tc.h.cfg.Path == "" {
 				tc.h.cfg.Path = t.TempDir()
+			}
+			if tc.h.journal == nil {
+				tc.h.journal = journal.New(tc.h.cfg)
 			}
 			if tc.h.changedFile == "" {
 				tc.h.changedFile = testutil.MustWriteFile(t, filepath.Join(tc.h.cfg.Path, "test.txt"), "content")

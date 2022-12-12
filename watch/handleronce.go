@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/hansmi/baamhackl/internal/config"
 	"github.com/hansmi/baamhackl/internal/handlercommand"
 	"github.com/hansmi/baamhackl/internal/journal"
-	"github.com/hansmi/baamhackl/internal/uniquename"
 	"github.com/hansmi/baamhackl/internal/waryio"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
@@ -34,6 +32,7 @@ func validateChangedFile(path string) (os.FileInfo, error) {
 
 type handlerOnce struct {
 	cfg         *config.Handler
+	journal     *journal.Journal
 	changedFile string
 	baseDir     string
 	final       bool
@@ -44,26 +43,9 @@ type handlerOnce struct {
 }
 
 func (o *handlerOnce) moveToArchive(success bool) error {
-	destDir := o.cfg.FailureDir
-
-	if success {
-		destDir = o.cfg.SuccessDir
-	}
-
-	destDirClean, err := waryio.EnsureRelDir(o.cfg.Path, destDir, os.ModePerm)
-	if err != nil {
-		return err
-	}
-
 	src := o.changedFile
-
-	g, err := uniquename.New(filepath.Join(destDirClean, filepath.Base(src)), journal.ArchiveNamingOptions)
-	if err != nil {
-		return err
-	}
-
-	dest, err := waryio.RenameToAvailableName(src, g)
-	if err == nil {
+	dest, err := o.journal.MoveToArchive(src, success)
+	if err == nil && dest != "" {
 		o.logger.Info("Moved changed file", zap.String("source", src), zap.String("dest", dest))
 	}
 
