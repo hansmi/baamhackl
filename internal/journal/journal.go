@@ -2,6 +2,7 @@ package journal
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -35,6 +36,10 @@ func (j *Journal) ensureDir(path string) (string, error) {
 }
 
 func (j *Journal) CreateTaskDir(hint string) (string, error) {
+	if hint == "" {
+		return "", fmt.Errorf("%w: non-empty hint is required", os.ErrInvalid)
+	}
+
 	base, err := j.ensureDir(j.cfg.JournalDir)
 	if err != nil {
 		return "", err
