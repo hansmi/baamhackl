@@ -52,7 +52,7 @@ func New(path string, opts Options) (*Generator, error) {
 	g.dir, g.prefix = filepath.Split(path)
 
 	if g.prefix == "" {
-		return nil, fmt.Errorf("path %q contains no name: %w", path, os.ErrInvalid)
+		return nil, fmt.Errorf("%w: path %q contains no name", os.ErrInvalid, path)
 	}
 
 	g.originalName = g.prefix
