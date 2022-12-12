@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/subcommands"
+	"github.com/hansmi/baamhackl/internal/cleanupgroup"
 	"github.com/hansmi/baamhackl/internal/cmdutil"
 	"github.com/hansmi/baamhackl/internal/config"
 	"github.com/hansmi/baamhackl/internal/service"
@@ -109,14 +110,14 @@ func (c *Command) ExecuteWithClient(ctx context.Context, client watchman.Client)
 	}
 	defer multierr.AppendInvoke(&err, multierr.Invoke(removeTempDir))
 
-	var cleanup cleanupGroup
+	var cleanup cleanupgroup.CleanupGroup
 	defer func() {
 		multierr.AppendInto(&err, cleanup.CallWithTimeout(c.shutdownTimeout))
 	}()
 
 	r := newRouter(cfg.Handlers)
 	r.start(int(c.slotCount))
-	cleanup.append(r.stop)
+	cleanup.Append(r.stop)
 
 	socketPath := filepath.Join(tmpdir, "server.socket")
 
@@ -124,7 +125,7 @@ func (c *Command) ExecuteWithClient(ctx context.Context, client watchman.Client)
 		Client:     client,
 		SocketPath: socketPath,
 	}
-	cleanup.append(triggerGroup.DeleteAll)
+	cleanup.Append(triggerGroup.DeleteAll)
 
 	srv, err := service.ListenAndServe(socketPath, r)
 	if err != nil {
