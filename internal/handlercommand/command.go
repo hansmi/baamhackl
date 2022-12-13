@@ -53,11 +53,11 @@ func runCommand(ctx context.Context, logger *zap.Logger, cmd *exec.Cmd) error {
 		zap.Duration("wall_time", time.Since(start)),
 	}
 
-	if cmd.ProcessState != nil {
+	if ps := cmd.ProcessState; ps != nil {
 		logValues = append(logValues,
-			zap.Duration("system_time", cmd.ProcessState.SystemTime()),
-			zap.Duration("user_time", cmd.ProcessState.UserTime()),
-			zap.Int("exit_code", cmd.ProcessState.ExitCode()),
+			zap.Duration("system_time", ps.SystemTime()),
+			zap.Duration("user_time", ps.UserTime()),
+			zap.Int("exit_code", ps.ExitCode()),
 		)
 	}
 
