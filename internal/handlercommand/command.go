@@ -77,17 +77,20 @@ func runCommand(ctx context.Context, logger *zap.Logger, cmd *exec.Cmd) error {
 }
 
 type Options struct {
+	Logger *zap.Logger
+
+	// Path to the changed file.
 	SourceFile string
 
-	Logger  *zap.Logger
+	// Directory for storing execution-related files.
 	BaseDir string
+
+	// Command arguments.
 	Command []string
 }
 
 type Command struct {
-	logger *zap.Logger
-
-	sourceFile string
+	opts Options
 
 	inputDir   string
 	inputFile  string
@@ -95,9 +98,9 @@ type Command struct {
 	outputFile string
 
 	environ []string
-	args    []string
 }
 
+// New instantiates a command for a changed file.
 func New(opts Options) (*Command, error) {
 	exe, err := exepath.Get()
 	if err != nil {
@@ -109,21 +112,16 @@ func New(opts Options) (*Command, error) {
 	}
 
 	c := &Command{
-		logger: opts.Logger,
-
-		sourceFile: opts.SourceFile,
-
+		opts:       opts,
 		inputDir:   filepath.Join(opts.BaseDir, "input"),
 		workDir:    filepath.Join(opts.BaseDir, "work"),
 		outputFile: filepath.Join(opts.BaseDir, "command_output.txt"),
-
-		args: opts.Command,
 	}
 
-	c.inputFile = filepath.Join(c.inputDir, filepath.Base(opts.SourceFile))
+	c.inputFile = filepath.Join(c.inputDir, filepath.Base(c.opts.SourceFile))
 	c.environ = []string{
 		"BAAMHACKL_PROGRAM=" + exe,
-		"BAAMHACKL_ORIGINAL=" + opts.SourceFile,
+		"BAAMHACKL_ORIGINAL=" + c.opts.SourceFile,
 		"BAAMHACKL_WORKDIR=" + c.workDir,
 		"BAAMHACKL_INPUT=" + c.inputFile,
 	}
@@ -139,7 +137,7 @@ func (c *Command) prepare() error {
 		return fmt.Errorf("creating directories failed: %w", err)
 	}
 
-	if err := copyInputFile(c.sourceFile, c.inputFile); err != nil {
+	if err := copyInputFile(c.opts.SourceFile, c.inputFile); err != nil {
 		return fmt.Errorf("copying changed file failed: %w", err)
 	}
 
@@ -147,6 +145,8 @@ func (c *Command) prepare() error {
 }
 
 func (c *Command) Run(ctx context.Context) (err error) {
+	logger := c.opts.Logger
+
 	if err := c.prepare(); err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (c *Command) Run(ctx context.Context) (err error) {
 
 	defer multierr.AppendInvoke(&err, multierr.Close(outputHandle))
 
-	cmd := exec.CommandContext(ctx, c.args[0], c.args[1:]...)
+	cmd := exec.CommandContext(ctx, c.opts.Command[0], c.opts.Command[1:]...)
 	cmd.Stdin = nil
 	cmd.Stdout = outputHandle
 	cmd.Stderr = outputHandle
@@ -178,7 +178,7 @@ func (c *Command) Run(ctx context.Context) (err error) {
 		)
 	}
 
-	c.logger.Info("Run handler command", logValues...)
+	logger.Info("Run handler command", logValues...)
 
-	return runCommand(ctx, c.logger, cmd)
+	return runCommand(ctx, logger, cmd)
 }
