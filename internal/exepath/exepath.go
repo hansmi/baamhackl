@@ -36,26 +36,21 @@ func resolve(fn executableFunc) data {
 var global data
 var globalOnce sync.Once
 
-func globalSetup() {
+// Get returns the path name for the executable of the current process.
+func Get() (string, error) {
 	globalOnce.Do(func() {
 		global = resolve(nil)
 	})
-}
-
-// Get returns the path name for the executable of the current process.
-func Get() (string, error) {
-	globalSetup()
 
 	return global.path, global.err
 }
 
 // MustGet is like Get but panics if the executable is unknown.
 func MustGet() string {
-	globalSetup()
-
-	if global.err != nil {
-		panic(global.err)
+	path, err := Get()
+	if err != nil {
+		panic(err)
 	}
 
-	return global.path
+	return path
 }
