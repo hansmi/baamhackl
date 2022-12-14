@@ -10,7 +10,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hansmi/baamhackl/internal/config"
-	"github.com/hansmi/baamhackl/internal/handlerattempt"
 	"github.com/hansmi/baamhackl/internal/journal"
 	"github.com/hansmi/baamhackl/internal/scheduler"
 	"github.com/hansmi/baamhackl/internal/testutil"
@@ -102,8 +101,8 @@ func TestHandlerTaskRun(t *testing.T) {
 				cfg:     &cfg,
 				journal: journal.New(&cfg),
 				name:    "test.txt",
-				invoke: func(ctx context.Context, opts handlerattempt.Options) (bool, error) {
-					testutil.MustLstat(t, opts.ChangedFile)
+				invoke: func(ctx context.Context, o *handlerOnce) (bool, error) {
+					testutil.MustLstat(t, o.changedFile)
 
 					return tc.invoke()
 				},

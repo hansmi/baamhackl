@@ -1,4 +1,4 @@
-package handlerattempt
+package watch
 
 import (
 	"context"
@@ -30,82 +30,64 @@ func validateChangedFile(path string) (os.FileInfo, error) {
 	return fi, nil
 }
 
-type Options struct {
-	Logger  *zap.Logger
-	Config  *config.Handler
-	Journal *journal.Journal
-
-	// Path to the changed file.
-	ChangedFile string
-
-	// Directory for storing execution-related files.
-	BaseDir string
-
-	// Whether the attempt is the last one before giving up.
-	Final bool
-
-	// Function to acquire a lock preventing concurrent file changes by handler
-	// logic.
-	AcquireLock func()
-}
-
-type Attempt struct {
-	opts Options
+type handlerOnce struct {
+	cfg         *config.Handler
+	journal     *journal.Journal
+	changedFile string
+	baseDir     string
+	final       bool
+	logger      *zap.Logger
+	acquireLock func()
 
 	run func(context.Context) error
 }
 
-func New(opts Options) (*Attempt, error) {
-	o := &Attempt{
-		opts: opts,
-	}
-
-	if cmd, err := handlercommand.New(handlercommand.Options{
-		Logger:     o.opts.Logger,
-		SourceFile: o.opts.ChangedFile,
-		BaseDir:    o.opts.BaseDir,
-		Command:    o.opts.Config.Command,
-	}); err != nil {
-		return nil, err
-	} else {
-		o.run = cmd.Run
-	}
-
-	return o, nil
-}
-
-func (o *Attempt) moveToArchive(success bool) error {
-	dest, err := o.opts.Journal.MoveToArchive(o.opts.ChangedFile, success)
+func (o *handlerOnce) moveToArchive(success bool) error {
+	src := o.changedFile
+	dest, err := o.journal.MoveToArchive(src, success)
 	if err == nil && dest != "" {
-		o.opts.Logger.Info("Moved changed file",
-			zap.String("source", o.opts.ChangedFile),
-			zap.String("dest", dest),
-		)
+		o.logger.Info("Moved changed file", zap.String("source", src), zap.String("dest", dest))
 	}
 
 	return err
 }
 
-func (o *Attempt) Run(ctx context.Context) (bool, error) {
-	statBefore, err := validateChangedFile(o.opts.ChangedFile)
+func (o *handlerOnce) do(ctx context.Context) (bool, error) {
+	run := o.run
+
+	if run == nil {
+		c, err := handlercommand.New(handlercommand.Options{
+			Logger:     o.logger,
+			SourceFile: o.changedFile,
+			BaseDir:    o.baseDir,
+			Command:    o.cfg.Command,
+		})
+		if err != nil {
+			return true, err
+		}
+
+		run = c.Run
+	}
+
+	statBefore, err := validateChangedFile(o.changedFile)
 	if err != nil {
 		return true, err
 	}
 
-	o.opts.Logger.Info("File information",
+	o.logger.Info("File information",
 		zap.String("name", statBefore.Name()),
 		zap.Time("modtime", statBefore.ModTime()),
 		zap.Int64("size", statBefore.Size()),
 		zap.String("mode", statBefore.Mode().String()),
 	)
 
-	ctx, cancel := context.WithTimeout(ctx, o.opts.Config.Timeout)
+	ctx, cancel := context.WithTimeout(ctx, o.cfg.Timeout)
 	defer cancel()
 
-	commandErr := o.run(ctx)
+	commandErr := run(ctx)
 
-	if o.opts.AcquireLock != nil {
-		o.opts.AcquireLock()
+	if o.acquireLock != nil {
+		o.acquireLock()
 	}
 
 	permanent := false
@@ -113,7 +95,7 @@ func (o *Attempt) Run(ctx context.Context) (bool, error) {
 
 	// The changed file is moved if and only it still exists and remains
 	// unchanged from before running the handler command.
-	if statAfter, err := os.Lstat(o.opts.ChangedFile); err != nil {
+	if statAfter, err := os.Lstat(o.changedFile); err != nil {
 		// Tolerate a missing file if and only if the command succeeded.
 		if !(commandErr == nil && os.IsNotExist(err)) {
 			multierr.AppendInto(&combinedErr, err)
@@ -123,7 +105,7 @@ func (o *Attempt) Run(ctx context.Context) (bool, error) {
 		permanent = os.IsNotExist(err)
 	} else if changes := waryio.DescribeChanges(statBefore, statAfter); !changes.Empty() {
 		multierr.AppendInto(&combinedErr, changes.Err())
-	} else if o.opts.Final || commandErr == nil {
+	} else if o.final || commandErr == nil {
 		multierr.AppendInto(&combinedErr, o.moveToArchive(commandErr == nil))
 	}
 
