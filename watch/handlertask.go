@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/hansmi/baamhackl/internal/config"
+	"github.com/hansmi/baamhackl/internal/handlerattempt"
 	"github.com/hansmi/baamhackl/internal/handlerretrystrategy"
 	"github.com/hansmi/baamhackl/internal/journal"
 	"github.com/hansmi/baamhackl/internal/scheduler"
@@ -28,7 +29,7 @@ type handlerTask struct {
 	journalDir     string
 	fuzzFactor     float32
 
-	invoke func(context.Context, *handlerOnce) (bool, error)
+	invoke func(context.Context, handlerattempt.Options) (bool, error)
 }
 
 func (t *handlerTask) ensureJournalDir() error {
@@ -79,24 +80,41 @@ func (t *handlerTask) run(ctx context.Context, acquireLock func()) error {
 		}
 
 		if t.invoke == nil {
-			t.invoke = func(ctx context.Context, o *handlerOnce) (bool, error) {
-				return o.do(ctx)
+			t.invoke = func(ctx context.Context, opts handlerattempt.Options) (bool, error) {
+				h, err := handlerattempt.New(handlerattempt.Options{
+					Logger: inner,
+
+					Config:      t.cfg,
+					Journal:     t.journal,
+					ChangedFile: filepath.Join(t.cfg.Path, t.name),
+					BaseDir:     taskDir,
+
+					// Is this the last attempt?
+					Final: retryDelay == scheduler.Stop,
+
+					AcquireLock: acquireLock,
+				})
+				if err != nil {
+					return true, err
+				}
+
+				return h.Run(ctx)
 			}
 		}
 
-		permanent, err = t.invoke(ctx, &handlerOnce{
-			cfg:         t.cfg,
-			journal:     t.journal,
-			changedFile: filepath.Join(t.cfg.Path, t.name),
-			baseDir:     taskDir,
+		permanent, err = t.invoke(ctx, handlerattempt.Options{
+			Logger: inner,
+
+			Config:      t.cfg,
+			Journal:     t.journal,
+			ChangedFile: filepath.Join(t.cfg.Path, t.name),
+			BaseDir:     taskDir,
 
 			// Is this the last attempt?
-			final: retryDelay == scheduler.Stop,
+			Final: retryDelay == scheduler.Stop,
 
-			logger:      inner,
-			acquireLock: acquireLock,
+			AcquireLock: acquireLock,
 		})
-
 		if err != nil {
 			inner.Error("Handling file change failed", zap.Error(err))
 		}
