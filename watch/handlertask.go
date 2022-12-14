@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/hansmi/baamhackl/internal/config"
+	"github.com/hansmi/baamhackl/internal/fuzzduration"
 	"github.com/hansmi/baamhackl/internal/handlerattempt"
 	"github.com/hansmi/baamhackl/internal/handlerretrystrategy"
 	"github.com/hansmi/baamhackl/internal/journal"
@@ -118,6 +119,6 @@ func (t *handlerTask) run(ctx context.Context, acquireLock func()) error {
 
 	return &scheduler.TaskError{
 		Err:        err,
-		RetryDelay: fuzzDuration(retryDelay, t.fuzzFactor),
+		RetryDelay: fuzzduration.Random(retryDelay, t.fuzzFactor),
 	}
 }

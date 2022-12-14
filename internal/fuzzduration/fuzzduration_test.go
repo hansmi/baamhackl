@@ -1,11 +1,11 @@
-package watch
+package fuzzduration
 
 import (
 	"testing"
 	"time"
 )
 
-func TestFuzzDuration(t *testing.T) {
+func TestRandom(t *testing.T) {
 	for _, tc := range []struct {
 		name   string
 		d      time.Duration
@@ -30,7 +30,7 @@ func TestFuzzDuration(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			for i := 0; i < 100; i++ {
-				got := fuzzDuration(tc.d, tc.factor)
+				got := Random(tc.d, tc.factor)
 
 				diff := got - tc.d
 				if diff < 0 {

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hansmi/baamhackl/internal/config"
+	"github.com/hansmi/baamhackl/internal/fuzzduration"
 	"github.com/hansmi/baamhackl/internal/scheduler"
 	"github.com/hansmi/baamhackl/internal/service"
 	"go.uber.org/multierr"
@@ -73,7 +74,7 @@ func (r *router) startPruning(interval time.Duration) {
 }
 
 func (r *router) schedulePruning(after time.Duration) {
-	r.sched.Add(r.pruneAll, scheduler.NextAfterDuration(fuzzDuration(after, 0.1)))
+	r.sched.Add(r.pruneAll, scheduler.NextAfterDuration(fuzzduration.Random(after, 0.1)))
 }
 
 func (r *router) pruneAll(ctx context.Context) error {
