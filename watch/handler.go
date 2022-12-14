@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/hansmi/baamhackl/internal/config"
+	"github.com/hansmi/baamhackl/internal/handlertask"
 	"github.com/hansmi/baamhackl/internal/journal"
 	"github.com/hansmi/baamhackl/internal/scheduler"
 	"github.com/hansmi/baamhackl/internal/service"
@@ -18,10 +19,10 @@ type handler struct {
 	mu      sync.Mutex
 	name    string
 	cfg     *config.Handler
-	pending map[string]*handlerTask
+	pending map[string]*handlertask.Task
 	journal *journal.Journal
 
-	invoke func(context.Context, *handlerTask, func()) error
+	invoke func(context.Context, *handlertask.Task, func()) error
 }
 
 func newHandler(cfg *config.Handler) *handler {
@@ -29,23 +30,22 @@ func newHandler(cfg *config.Handler) *handler {
 		name:    cfg.Name,
 		cfg:     cfg,
 		journal: journal.New(cfg),
-		pending: map[string]*handlerTask{},
-		invoke: func(ctx context.Context, t *handlerTask, acquireLock func()) error {
-			return t.run(ctx, acquireLock)
+		pending: map[string]*handlertask.Task{},
+		invoke: func(ctx context.Context, t *handlertask.Task, acquireLock func()) error {
+			return t.Run(ctx, acquireLock)
 		},
 	}
 }
 
-func (h *handler) newTask(name string) *handlerTask {
-	return &handlerTask{
-		cfg:        h.cfg,
-		journal:    h.journal,
-		name:       name,
-		fuzzFactor: 0.1,
-	}
+func (h *handler) newTask(name string) *handlertask.Task {
+	return handlertask.New(handlertask.Options{
+		Config:  h.cfg,
+		Journal: h.journal,
+		Name:    name,
+	})
 }
 
-func (h *handler) invokeTask(ctx context.Context, t *handlerTask) error {
+func (h *handler) invokeTask(ctx context.Context, t *handlertask.Task) error {
 	locked := false
 
 	defer func() {
@@ -67,7 +67,7 @@ func (h *handler) invokeTask(ctx context.Context, t *handlerTask) error {
 		acquireLock()
 
 		// Remove from pending tasks
-		delete(h.pending, t.name)
+		delete(h.pending, t.Name())
 	}
 
 	return err

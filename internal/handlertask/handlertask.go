@@ -1,4 +1,4 @@
-package watch
+package handlertask
 
 import (
 	"context"
@@ -18,12 +18,16 @@ import (
 	"go.uber.org/zap"
 )
 
-type handlerTask struct {
-	cfg     *config.Handler
-	journal *journal.Journal
+type Options struct {
+	Config  *config.Handler
+	Journal *journal.Journal
 
 	// Name of modified file
-	name string
+	Name string
+}
+
+type Task struct {
+	opts Options
 
 	retry          *handlerretrystrategy.Strategy
 	currentAttempt int
@@ -33,9 +37,20 @@ type handlerTask struct {
 	invoke func(context.Context, handlerattempt.Options) (bool, error)
 }
 
-func (t *handlerTask) ensureJournalDir() error {
+func New(opts Options) *Task {
+	return &Task{
+		opts:       opts,
+		fuzzFactor: 0.1,
+	}
+}
+
+func (t *Task) Name() string {
+	return t.opts.Name
+}
+
+func (t *Task) ensureJournalDir() error {
 	if t.journalDir == "" {
-		path, err := t.journal.CreateTaskDir(t.name)
+		path, err := t.opts.Journal.CreateTaskDir(t.opts.Name)
 		if err != nil {
 			return fmt.Errorf("creating journal directory failed: %w", err)
 		}
@@ -45,10 +60,10 @@ func (t *handlerTask) ensureJournalDir() error {
 	return nil
 }
 
-func (t *handlerTask) run(ctx context.Context, acquireLock func()) error {
+func (t *Task) Run(ctx context.Context, acquireLock func()) error {
 	logger := zap.L().With(
-		zap.String("root", t.cfg.Path),
-		zap.String("name", t.name),
+		zap.String("root", t.opts.Config.Path),
+		zap.String("name", t.opts.Name),
 	)
 	logger.Info("Handling changed file", zap.Int("attempt", t.currentAttempt))
 
@@ -61,7 +76,7 @@ func (t *handlerTask) run(ctx context.Context, acquireLock func()) error {
 	}
 
 	if t.retry == nil {
-		t.retry = handlerretrystrategy.New(*t.cfg)
+		t.retry = handlerretrystrategy.New(*t.opts.Config)
 	}
 
 	taskLogger := teelog.File{
@@ -94,9 +109,9 @@ func (t *handlerTask) run(ctx context.Context, acquireLock func()) error {
 		permanent, err = t.invoke(ctx, handlerattempt.Options{
 			Logger: inner,
 
-			Config:      t.cfg,
-			Journal:     t.journal,
-			ChangedFile: filepath.Join(t.cfg.Path, t.name),
+			Config:      t.opts.Config,
+			Journal:     t.opts.Journal,
+			ChangedFile: filepath.Join(t.opts.Config.Path, t.opts.Name),
 			BaseDir:     taskDir,
 
 			// Is this the last attempt?

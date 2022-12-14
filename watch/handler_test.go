@@ -2,6 +2,7 @@ package watch
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 	"testing"
 	"time"
@@ -9,9 +10,12 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hansmi/baamhackl/internal/config"
+	"github.com/hansmi/baamhackl/internal/handlertask"
 	"github.com/hansmi/baamhackl/internal/scheduler"
 	"github.com/hansmi/baamhackl/internal/service"
 )
+
+var errTest = errors.New("test error")
 
 func TestHandlerInvokeTask(t *testing.T) {
 	for _, tc := range []struct {
@@ -39,7 +43,7 @@ func TestHandlerInvokeTask(t *testing.T) {
 
 			for _, lockEarly := range []bool{false, true} {
 				h := newHandler(&cfg)
-				h.invoke = func(ctx context.Context, t *handlerTask, acquireLock func()) error {
+				h.invoke = func(ctx context.Context, t *handlertask.Task, acquireLock func()) error {
 					if lockEarly {
 						acquireLock()
 					}
@@ -50,9 +54,9 @@ func TestHandlerInvokeTask(t *testing.T) {
 				ctx, cancel := context.WithCancel(context.Background())
 				t.Cleanup(cancel)
 
-				err := h.invokeTask(ctx, &handlerTask{
-					name: "test",
-				})
+				err := h.invokeTask(ctx, handlertask.New(handlertask.Options{
+					Name: "test",
+				}))
 
 				if diff := cmp.Diff(tc.wantErr, err, cmpopts.EquateErrors()); diff != "" {
 					t.Errorf("Error diff (-want +got):\n%s", diff)
@@ -108,7 +112,7 @@ func TestHandler(t *testing.T) {
 			calls := 0
 
 			h := newHandler(&cfg)
-			h.invoke = func(ctx context.Context, task *handlerTask, acquireLock func()) error {
+			h.invoke = func(ctx context.Context, task *handlertask.Task, acquireLock func()) error {
 				acquireLock()
 
 				if calls++; calls <= tc.attempts {
@@ -139,7 +143,7 @@ func TestHandler(t *testing.T) {
 				t.Errorf("Attempt count diff (-want +got):\n%s", diff)
 			}
 
-			if diff := cmp.Diff(map[string]*handlerTask{}, h.pending); diff != "" {
+			if diff := cmp.Diff(map[string]*handlertask.Task{}, h.pending); diff != "" {
 				t.Errorf("Pending tasks diff (-want +got):\n%s", diff)
 			}
 			h.mu.Unlock()

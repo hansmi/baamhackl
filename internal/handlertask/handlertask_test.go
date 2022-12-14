@@ -1,7 +1,8 @@
-package watch
+package handlertask
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"testing"
@@ -16,15 +17,17 @@ import (
 	"github.com/hansmi/baamhackl/internal/testutil"
 )
 
+var errTest = errors.New("test error")
+
 func TestHandlerTaskEnsureJournalDir(t *testing.T) {
 	cfg := config.HandlerDefaults
 	cfg.Path = t.TempDir()
 
-	task := &handlerTask{
-		cfg:     &cfg,
-		journal: journal.New(&cfg),
-		name:    "test.txt",
-	}
+	task := New(Options{
+		Config:  &cfg,
+		Journal: journal.New(&cfg),
+		Name:    "test.txt",
+	})
 
 	baseJournalDir := filepath.Join(cfg.Path, cfg.JournalDir)
 	testutil.MustNotExist(t, baseJournalDir)
@@ -98,22 +101,23 @@ func TestHandlerTaskRun(t *testing.T) {
 
 			testutil.MustWriteFile(t, filepath.Join(cfg.Path, "test.txt"), "content")
 
-			task := &handlerTask{
-				cfg:     &cfg,
-				journal: journal.New(&cfg),
-				name:    "test.txt",
-				invoke: func(ctx context.Context, opts handlerattempt.Options) (bool, error) {
-					testutil.MustLstat(t, opts.ChangedFile)
+			task := New(Options{
+				Config:  &cfg,
+				Journal: journal.New(&cfg),
+				Name:    "test.txt",
+			})
+			task.fuzzFactor = 0
+			task.invoke = func(ctx context.Context, opts handlerattempt.Options) (bool, error) {
+				testutil.MustLstat(t, opts.ChangedFile)
 
-					return tc.invoke()
-				},
+				return tc.invoke()
 			}
 
 			ctx, cancel := context.WithCancel(context.Background())
 			t.Cleanup(cancel)
 
 			for done, attempt := false, 0; !done; attempt++ {
-				err := task.run(ctx, nil)
+				err := task.Run(ctx, nil)
 
 				if diff := cmp.Diff(tc.wantErr, err, cmpopts.EquateErrors()); diff != "" {
 					t.Errorf("Error diff (-want +got):\n%s", diff)
