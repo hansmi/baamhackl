@@ -123,8 +123,8 @@ func (o *Attempt) Run(ctx context.Context) (bool, error) {
 		permanent = os.IsNotExist(err)
 	} else if changes := waryio.DescribeChanges(statBefore, statAfter); !changes.Empty() {
 		multierr.AppendInto(&combinedErr, changes.Err())
-	} else if o.opts.Final || commandErr == nil {
-		multierr.AppendInto(&combinedErr, o.moveToArchive(commandErr == nil))
+	} else if success := commandErr == nil; success || o.opts.Final {
+		multierr.AppendInto(&combinedErr, o.moveToArchive(success))
 	}
 
 	return permanent, combinedErr
