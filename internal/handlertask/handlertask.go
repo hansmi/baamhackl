@@ -101,7 +101,7 @@ func (t *Task) Run(ctx context.Context, acquireLock func()) error {
 	var permanent bool
 
 	err := taskLogger.Wrap(func(inner *zap.Logger) error {
-		taskDir, err := waryio.EnsureRelDir(t.journalDir, strconv.FormatInt(int64(t.currentAttempt), 10), os.ModePerm)
+		taskDir, err := waryio.EnsureRelDir(t.journalDir, strconv.Itoa(t.currentAttempt), os.ModePerm)
 		if err != nil {
 			return err
 		}
