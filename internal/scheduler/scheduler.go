@@ -133,10 +133,6 @@ func (s *Scheduler) Add(fn TaskFunc, opts ...ScheduleOption) {
 		seq: nextSequenceNumber(),
 	}
 
-	// if !(t.seq == 0 && t.seqItem == nil && t.timeItem == nil) {
-	// 	panic("tasks can't be reused")
-	// }
-
 	for _, opt := range opts {
 		opt(t)
 	}
