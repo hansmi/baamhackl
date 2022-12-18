@@ -115,7 +115,9 @@ func (c *Command) ExecuteWithClient(ctx context.Context, client watchman.Client)
 		multierr.AppendInto(&err, cleanup.CallWithTimeout(c.shutdownTimeout))
 	}()
 
-	r := newRouter(cfg.Handlers)
+	r := newRouter(routerOptions{
+		handlers: cfg.Handlers,
+	})
 	r.start(int(c.slotCount))
 	cleanup.Append(r.stop)
 

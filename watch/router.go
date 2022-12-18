@@ -15,21 +15,25 @@ import (
 	"go.uber.org/zap"
 )
 
+type routerOptions struct {
+	handlers []*config.Handler
+}
+
 type router struct {
 	handlerByName map[string]*handler
 	sched         *scheduler.Scheduler
 	pruneInterval time.Duration
 }
 
-func newRouter(handlers []*config.Handler) *router {
+func newRouter(opts routerOptions) *router {
 	r := &router{
 		handlerByName: map[string]*handler{},
 		sched:         scheduler.New(),
 		pruneInterval: time.Hour,
 	}
 
-	for _, h := range handlers {
-		r.handlerByName[h.Name] = newHandler(h)
+	for _, cfg := range opts.handlers {
+		r.handlerByName[cfg.Name] = newHandler(cfg)
 	}
 
 	return r

@@ -13,7 +13,7 @@ import (
 )
 
 func TestRouterStartStop(t *testing.T) {
-	r := newRouter(nil)
+	r := newRouter(routerOptions{})
 	r.start(10)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -74,10 +74,12 @@ func TestRouterFileChangedFailure(t *testing.T) {
 			wantErr: regexp.MustCompile(`^root directory\b.*\bdiffers\b`),
 		},
 	} {
-		r := newRouter([]*config.Handler{
-			{
-				Name: "configured",
-				Path: tmpdir,
+		r := newRouter(routerOptions{
+			handlers: []*config.Handler{
+				{
+					Name: "configured",
+					Path: tmpdir,
+				},
 			},
 		})
 		err := r.FileChanged(tc.req)
@@ -91,10 +93,12 @@ func TestRouterFileChangedFailure(t *testing.T) {
 func TestRouterMultipleChanges(t *testing.T) {
 	tmpdir := t.TempDir()
 
-	r := newRouter([]*config.Handler{
-		{
-			Name: "compressor",
-			Path: tmpdir,
+	r := newRouter(routerOptions{
+		handlers: []*config.Handler{
+			{
+				Name: "compressor",
+				Path: tmpdir,
+			},
 		},
 	})
 
