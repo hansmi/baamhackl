@@ -79,6 +79,17 @@ func (t *Task) Run(ctx context.Context, acquireLock func()) error {
 		t.retry = handlerretrystrategy.New(*t.opts.Config)
 	}
 
+	if t.invoke == nil {
+		t.invoke = func(ctx context.Context, opts handlerattempt.Options) (bool, error) {
+			h, err := handlerattempt.New(opts)
+			if err != nil {
+				return true, err
+			}
+
+			return h.Run(ctx)
+		}
+	}
+
 	taskLogger := teelog.File{
 		Parent: logger,
 
@@ -93,17 +104,6 @@ func (t *Task) Run(ctx context.Context, acquireLock func()) error {
 		taskDir, err := waryio.EnsureRelDir(t.journalDir, strconv.FormatInt(int64(t.currentAttempt), 10), os.ModePerm)
 		if err != nil {
 			return err
-		}
-
-		if t.invoke == nil {
-			t.invoke = func(ctx context.Context, opts handlerattempt.Options) (bool, error) {
-				h, err := handlerattempt.New(opts)
-				if err != nil {
-					return true, err
-				}
-
-				return h.Run(ctx)
-			}
 		}
 
 		permanent, err = t.invoke(ctx, handlerattempt.Options{
