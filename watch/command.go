@@ -3,8 +3,12 @@ package watch
 import (
 	"bytes"
 	"context"
+	"errors"
 	"flag"
 	"fmt"
+	"net"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -18,6 +22,10 @@ import (
 	"github.com/hansmi/baamhackl/internal/signalwait"
 	"github.com/hansmi/baamhackl/internal/watchman"
 	"github.com/hansmi/baamhackl/internal/watchmantrigger"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/version"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 )
@@ -49,6 +57,74 @@ func createTempDir(parent string) (string, func() error, error) {
 	}, nil
 }
 
+// serveMetrics builds a Prometheus registry including the router metrics and
+// serves all values under /metrics on the given listener.
+func serveMetrics(logger *zap.Logger, listener net.Listener, routerMetrics prometheus.Collector) (func(context.Context) error, error) {
+	reg := prometheus.NewPedanticRegistry()
+	reg.MustRegister(
+		collectors.NewBuildInfoCollector(),
+		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+		collectors.NewGoCollector(),
+		version.NewCollector("baamhackl"),
+		routerMetrics,
+	)
+
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{
+		Registry:            reg,
+		MaxRequestsInFlight: 3,
+	}))
+
+	server := &http.Server{
+		Handler: mux,
+	}
+
+	closed := make(chan struct{})
+
+	go func() {
+		defer close(closed)
+
+		if err := server.Serve(listener); !(err == nil || errors.Is(err, http.ErrServerClosed)) {
+			logger.Error("HTTP server failed", zap.Error(err))
+		}
+	}()
+
+	return func(ctx context.Context) error {
+		if err := server.Shutdown(ctx); err != nil {
+			return err
+		}
+
+		select {
+		case <-closed:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+
+		return nil
+	}, nil
+}
+
+func listenAndServeMetrics(logger *zap.Logger, addr string, routerMetrics prometheus.Collector) (string, func(context.Context) error, error) {
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return "", nil, err
+	}
+
+	stop, err := serveMetrics(logger, listener, routerMetrics)
+
+	if err != nil {
+		listener.Close()
+	}
+
+	u := url.URL{
+		Scheme: "http",
+		Host:   listener.Addr().String(),
+		Path:   "/metrics",
+	}
+
+	return u.String(), stop, err
+}
+
 // Command implements the "watch" subcommand.
 type Command struct {
 	wmFlags          watchman.Flags
@@ -56,6 +132,7 @@ type Command struct {
 	slotCount        uint
 	pruneInterval    time.Duration
 	shutdownTimeout  time.Duration
+	metricsAddress   string
 	configFlag       config.Flag
 }
 
@@ -82,6 +159,8 @@ func (c *Command) SetFlags(fs *flag.FlagSet) {
 		"Amount of time to wait for running handlers.")
 	fs.DurationVar(&c.pruneInterval, "prune_interval", time.Hour,
 		"How often to delete old journal entries.")
+	fs.StringVar(&c.metricsAddress, "metrics_address", "",
+		"Address on which to expose metrics (e.g. 127.0.0.1:8080). Leave empty to disable metrics.")
 	c.configFlag.SetFlags(fs)
 }
 
@@ -120,6 +199,17 @@ func (c *Command) ExecuteWithClient(ctx context.Context, client watchman.Client)
 	})
 	r.start(int(c.slotCount))
 	cleanup.Append(r.stop)
+
+	if c.metricsAddress != "" {
+		metricsURL, stop, err := listenAndServeMetrics(logger, c.metricsAddress, r.metrics())
+		if err != nil {
+			return err
+		}
+
+		cleanup.Append(stop)
+
+		logger.Info("Metrics server ready", zap.String("address", metricsURL))
+	}
 
 	socketPath := filepath.Join(tmpdir, "server.socket")
 

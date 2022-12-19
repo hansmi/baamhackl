@@ -105,6 +105,7 @@ func (r *runner) setupAll() error {
 func (r *runner) newWatchCommand(configFile string) (*watch.Command, error) {
 	args := []string{
 		"-config", configFile,
+		"-metrics_address", "localhost:0",
 	}
 
 	var watchCmd watch.Command

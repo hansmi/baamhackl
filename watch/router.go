@@ -11,6 +11,7 @@ import (
 	"github.com/hansmi/baamhackl/internal/fuzzduration"
 	"github.com/hansmi/baamhackl/internal/scheduler"
 	"github.com/hansmi/baamhackl/internal/service"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 )
@@ -23,6 +24,8 @@ type router struct {
 	handlerByName map[string]*handler
 	sched         *scheduler.Scheduler
 	pruneInterval time.Duration
+
+	registry *prometheus.Registry
 }
 
 func newRouter(opts routerOptions) *router {
@@ -30,10 +33,17 @@ func newRouter(opts routerOptions) *router {
 		handlerByName: map[string]*handler{},
 		sched:         scheduler.New(),
 		pruneInterval: time.Hour,
+		registry:      prometheus.NewPedanticRegistry(),
 	}
 
+	prefixedReg := prometheus.WrapRegistererWithPrefix("baamhackl_", r.registry)
+
 	for _, cfg := range opts.handlers {
-		r.handlerByName[cfg.Name] = newHandler(cfg)
+		h := newHandler(cfg)
+		r.handlerByName[cfg.Name] = h
+		prometheus.WrapRegistererWith(prometheus.Labels{
+			"handler": cfg.Name,
+		}, prefixedReg).MustRegister(h.metrics())
 	}
 
 	return r
@@ -46,6 +56,10 @@ func (r *router) start(slots int) {
 
 func (r *router) stop(ctx context.Context) error {
 	return r.sched.Stop(ctx)
+}
+
+func (r *router) metrics() prometheus.Collector {
+	return r.registry
 }
 
 func (r *router) FileChanged(req service.FileChangedRequest) error {

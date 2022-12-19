@@ -9,11 +9,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hansmi/baamhackl/internal/cmdemu"
 	"github.com/hansmi/baamhackl/internal/exepath"
+	"github.com/hansmi/baamhackl/internal/ref"
 	"github.com/hansmi/baamhackl/internal/testutil"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -45,6 +47,20 @@ func TestMain(m *testing.M) {
 	w := cmdemu.New(flag.CommandLine)
 	w.Register(fakeCommand)
 	os.Exit(w.Main(m))
+}
+
+type fakeMetrics struct {
+	Count    int
+	ExitCode *int
+}
+
+func (m *fakeMetrics) ReportProcessState(exitCode int, _, _, _ time.Duration) {
+	if m.ExitCode != nil {
+		panic("exit code reported more than once")
+	}
+
+	m.ExitCode = &exitCode
+	m.Count++
 }
 
 func TestCreateDirectories(t *testing.T) {
@@ -107,7 +123,7 @@ func TestRunCommand(t *testing.T) {
 			cmd.Stderr = nil
 			cmd.Dir = t.TempDir()
 
-			err := runCommand(ctx, logger, cmd)
+			err := runCommand(ctx, logger, nil, cmd)
 
 			var exitErr *exec.ExitError
 
@@ -178,10 +194,11 @@ func TestNew(t *testing.T) {
 
 func TestRun(t *testing.T) {
 	for _, tc := range []struct {
-		name    string
-		ctx     context.Context
-		opts    Options
-		wantErr error
+		name        string
+		ctx         context.Context
+		opts        Options
+		wantErr     error
+		wantMetrics fakeMetrics
 	}{
 		{
 			name: "success",
@@ -189,6 +206,10 @@ func TestRun(t *testing.T) {
 				SourceFile: testutil.MustWriteFile(t, filepath.Join(t.TempDir(), "src"), "foobar"),
 				BaseDir:    t.TempDir(),
 				Command:    fakeCommand.MakeArgs("success"),
+			},
+			wantMetrics: fakeMetrics{
+				Count:    1,
+				ExitCode: ref.Ref(0),
 			},
 		},
 		{
@@ -232,6 +253,10 @@ func TestRun(t *testing.T) {
 				Command:    fakeCommand.MakeArgs("exit-99"),
 			},
 			wantErr: cmpopts.AnyError,
+			wantMetrics: fakeMetrics{
+				Count:    1,
+				ExitCode: ref.Ref(99),
+			},
 		},
 		{
 			name: "cancelled context",
@@ -249,17 +274,18 @@ func TestRun(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			if tc.ctx == nil {
+				tc.ctx = context.Background()
+			}
 			if tc.opts.Logger == nil {
 				tc.opts.Logger = zap.NewNop()
 			}
 
-			ctx := tc.ctx
+			var m fakeMetrics
 
-			if ctx == nil {
-				ctx = context.Background()
-			}
+			tc.opts.Metrics = &m
 
-			ctx, cancel := context.WithCancel(ctx)
+			ctx, cancel := context.WithCancel(tc.ctx)
 			t.Cleanup(cancel)
 
 			c, err := New(tc.opts)
@@ -271,6 +297,10 @@ func TestRun(t *testing.T) {
 
 			if diff := cmp.Diff(tc.wantErr, err, cmpopts.EquateErrors()); diff != "" {
 				t.Errorf("Error diff (-want +got):\n%s", diff)
+			}
+
+			if diff := cmp.Diff(tc.wantMetrics, m); diff != "" {
+				t.Errorf("Metrics diff (-want +got):\n%s", diff)
 			}
 		})
 	}

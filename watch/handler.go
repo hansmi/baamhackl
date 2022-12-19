@@ -12,6 +12,7 @@ import (
 	"github.com/hansmi/baamhackl/internal/scheduler"
 	"github.com/hansmi/baamhackl/internal/service"
 	"github.com/hansmi/baamhackl/internal/waryio"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 )
 
@@ -21,12 +22,13 @@ type handler struct {
 	cfg     *config.Handler
 	pending map[string]*handlertask.Task
 	journal *journal.Journal
+	mc      *handlerMetricsCollector
 
 	invoke func(context.Context, *handlertask.Task, func()) error
 }
 
 func newHandler(cfg *config.Handler) *handler {
-	return &handler{
+	h := &handler{
 		name:    cfg.Name,
 		cfg:     cfg,
 		journal: journal.New(cfg),
@@ -35,6 +37,14 @@ func newHandler(cfg *config.Handler) *handler {
 			return t.Run(ctx, acquireLock)
 		},
 	}
+
+	h.mc = newHandlerMetricsCollector(h)
+
+	return h
+}
+
+func (h *handler) metrics() prometheus.Collector {
+	return h.mc
 }
 
 func (h *handler) newTask(name string) *handlertask.Task {
@@ -42,6 +52,7 @@ func (h *handler) newTask(name string) *handlertask.Task {
 		Config:  h.cfg,
 		Journal: h.journal,
 		Name:    name,
+		Metrics: h.mc,
 	})
 }
 
@@ -54,6 +65,7 @@ func (h *handler) invokeTask(ctx context.Context, t *handlertask.Task) error {
 		}
 	}()
 
+	// Delay acquiring the handler lock until it's necessary.
 	acquireLock := func() {
 		if !locked {
 			locked = true
@@ -64,10 +76,14 @@ func (h *handler) invokeTask(ctx context.Context, t *handlertask.Task) error {
 	err := h.invoke(ctx, t, acquireLock)
 
 	if scheduler.AsTaskError(err).Permanent() {
+		h.mc.ReportFinalTaskStatus(err)
+
 		acquireLock()
 
 		// Remove from pending tasks
 		delete(h.pending, t.Name())
+	} else {
+		h.mc.ReportTaskRetry()
 	}
 
 	return err
@@ -96,6 +112,8 @@ func (h *handler) handle(sched *scheduler.Scheduler, req service.FileChangedRequ
 	} else {
 		logger.Debug("File already in queue", zap.String("name", name))
 	}
+
+	h.mc.ReportFileChange()
 
 	return nil
 }
