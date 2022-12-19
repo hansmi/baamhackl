@@ -15,19 +15,38 @@ import (
 	"go.uber.org/zap"
 )
 
-var archiveNamingOptions = uniquename.DefaultOptions
+type dirOptions struct {
+	path string
+	uniquename.Options
+}
 
 type Journal struct {
-	cfg            *config.Handler
-	taskDirOptions uniquename.Options
+	cfg *config.Handler
+
+	journalDir dirOptions
+	successDir dirOptions
+	failureDir dirOptions
 }
 
 func New(cfg *config.Handler) *Journal {
 	j := &Journal{
-		cfg:            cfg,
-		taskDirOptions: uniquename.DefaultOptions,
+		cfg: cfg,
+		journalDir: dirOptions{
+			Options: uniquename.DefaultOptions,
+			path:    cfg.JournalDir,
+		},
+		successDir: dirOptions{
+			Options: uniquename.DefaultOptions,
+			path:    cfg.SuccessDir,
+		},
+		failureDir: dirOptions{
+			Options: uniquename.DefaultOptions,
+			path:    cfg.FailureDir,
+		},
 	}
-	j.taskDirOptions.BeforeExtension = false
+
+	j.journalDir.BeforeExtension = false
+
 	return j
 }
 
@@ -35,17 +54,23 @@ func (j *Journal) ensureDir(path string) (string, error) {
 	return waryio.EnsureRelDir(j.cfg.Path, path, os.ModePerm)
 }
 
-func (j *Journal) CreateTaskDir(hint string) (string, error) {
+func (j *Journal) ensureDirForName(d dirOptions, hint string) (*uniquename.Generator, error) {
+	hint = filepath.Base(hint)
+
 	if hint == "" {
-		return "", fmt.Errorf("%w: non-empty hint is required", os.ErrInvalid)
+		return nil, fmt.Errorf("%w: non-empty hint is required", os.ErrInvalid)
 	}
 
-	base, err := j.ensureDir(j.cfg.JournalDir)
+	base, err := j.ensureDir(d.path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	g, err := uniquename.New(filepath.Join(base, filepath.Base(hint)), j.taskDirOptions)
+	return uniquename.New(filepath.Join(base, hint), d.Options)
+}
+
+func (j *Journal) CreateTaskDir(hint string) (string, error) {
+	g, err := j.ensureDirForName(j.journalDir, hint)
 	if err != nil {
 		return "", err
 	}
@@ -54,18 +79,13 @@ func (j *Journal) CreateTaskDir(hint string) (string, error) {
 }
 
 func (j *Journal) MoveToArchive(path string, success bool) (string, error) {
-	destDir := j.cfg.FailureDir
+	destDir := j.failureDir
 
 	if success {
-		destDir = j.cfg.SuccessDir
+		destDir = j.successDir
 	}
 
-	destDirClean, err := j.ensureDir(destDir)
-	if err != nil {
-		return "", err
-	}
-
-	g, err := uniquename.New(filepath.Join(destDirClean, filepath.Base(path)), archiveNamingOptions)
+	g, err := j.ensureDirForName(destDir, filepath.Base(path))
 	if err != nil {
 		return "", err
 	}
@@ -76,41 +96,38 @@ func (j *Journal) MoveToArchive(path string, success bool) (string, error) {
 func (j *Journal) Prune(ctx context.Context, logger *zap.Logger) error {
 	deadline := time.Now().Add(-j.cfg.JournalRetention).Truncate(time.Minute)
 
-	type info struct {
-		path string
-		opts uniquename.Options
+	all := []dirOptions{
+		j.journalDir,
+		j.successDir,
+		j.failureDir,
 	}
 
-	all := []*info{
-		{j.cfg.JournalDir, j.taskDirOptions},
-		{j.cfg.SuccessDir, archiveNamingOptions},
-		{j.cfg.FailureDir, archiveNamingOptions},
-	}
-
-	var dirNames []string
+	var pruners []prune.Pruner
+	var allPaths []string
 
 	for _, i := range all {
-		path, err := j.ensureDir(i.path)
+		dir, err := j.ensureDir(i.path)
 		if err != nil {
 			return err
 		}
-		i.path = path
 
-		dirNames = append(dirNames, path)
+		pruners = append(pruners, prune.Pruner{
+			Dir:    dir,
+			Accept: prune.MakeAgeFilter(deadline, i.Options),
+			Logger: logger.With(zap.String("dir", dir)),
+		})
+
+		allPaths = append(allPaths, dir)
 	}
 
 	logger.Info("Pruning journal",
 		zap.Time("deadline", deadline),
-		zap.Strings("dirs", dirNames))
+		zap.Strings("dirs", allPaths))
 
 	var allErrors error
 
-	for _, i := range all {
-		multierr.AppendInto(&allErrors, prune.Pruner{
-			Dir:    i.path,
-			Accept: prune.MakeAgeFilter(deadline, i.opts),
-			Logger: logger.With(zap.String("dir", i.path)),
-		}.Run(ctx))
+	for _, i := range pruners {
+		multierr.AppendInto(&allErrors, i.Run(ctx))
 	}
 
 	return allErrors
