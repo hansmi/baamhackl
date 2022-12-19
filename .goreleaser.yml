@@ -17,7 +17,7 @@ builds:
       - -trimpath
 
 nfpms:
-  - description: Prometheus exporter for LVM metrics
+  - description: Execute command when files are moved to a directory
     maintainer: M. Hanselmann
     bindir: /usr/bin
     license: BSD-3-Clause
