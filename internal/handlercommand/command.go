@@ -43,22 +43,30 @@ func copyInputFile(source, dest string) error {
 	return waryio.Copy(opts)
 }
 
-func runCommand(ctx context.Context, logger *zap.Logger, cmd *exec.Cmd) error {
+func runCommand(ctx context.Context, logger *zap.Logger, m MetricsReporter, cmd *exec.Cmd) error {
 	start := time.Now()
 
 	err := cmd.Run()
 
+	wallTime := time.Since(start)
+
 	logValues := []zapcore.Field{
 		zap.Error(err),
-		zap.Duration("wall_time", time.Since(start)),
+		zap.Duration("wall_time", wallTime),
 	}
 
+	// ProcessState may be nil if starting the command failed, e.g. due to the
+	// executable not being found.
 	if ps := cmd.ProcessState; ps != nil {
 		logValues = append(logValues,
 			zap.Duration("system_time", ps.SystemTime()),
 			zap.Duration("user_time", ps.UserTime()),
 			zap.Int("exit_code", ps.ExitCode()),
 		)
+
+		if m != nil {
+			m.ReportProcessState(ps.ExitCode(), wallTime, ps.UserTime(), ps.SystemTime())
+		}
 	}
 
 	logger.Info("Command exited", logValues...)
@@ -76,6 +84,10 @@ func runCommand(ctx context.Context, logger *zap.Logger, cmd *exec.Cmd) error {
 	return err
 }
 
+type MetricsReporter interface {
+	ReportProcessState(exitCode int, wallTime, userTime, systemTime time.Duration)
+}
+
 type Options struct {
 	Logger *zap.Logger
 
@@ -87,6 +99,9 @@ type Options struct {
 
 	// Command arguments.
 	Command []string
+
+	// Interface for reporting command-specific metrics.
+	Metrics MetricsReporter
 }
 
 type Command struct {
@@ -180,5 +195,5 @@ func (c *Command) Run(ctx context.Context) (err error) {
 
 	logger.Info("Run handler command", logValues...)
 
-	return runCommand(ctx, logger, cmd)
+	return runCommand(ctx, logger, c.opts.Metrics, cmd)
 }

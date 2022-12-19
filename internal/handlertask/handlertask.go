@@ -18,12 +18,19 @@ import (
 	"go.uber.org/zap"
 )
 
+type MetricsReporter interface {
+	handlerattempt.MetricsReporter
+}
+
 type Options struct {
 	Config  *config.Handler
 	Journal *journal.Journal
 
 	// Name of modified file
 	Name string
+
+	// Interface for reporting metrics.
+	Metrics MetricsReporter
 }
 
 type Task struct {
@@ -107,7 +114,8 @@ func (t *Task) Run(ctx context.Context, acquireLock func()) error {
 		}
 
 		permanent, err = t.invoke(ctx, handlerattempt.Options{
-			Logger: inner,
+			Logger:  inner,
+			Metrics: t.opts.Metrics,
 
 			Config:      t.opts.Config,
 			Journal:     t.opts.Journal,

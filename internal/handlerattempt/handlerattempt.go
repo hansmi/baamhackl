@@ -30,6 +30,10 @@ func validateChangedFile(path string) (os.FileInfo, error) {
 	return fi, nil
 }
 
+type MetricsReporter interface {
+	handlercommand.MetricsReporter
+}
+
 type Options struct {
 	Logger  *zap.Logger
 	Config  *config.Handler
@@ -47,6 +51,9 @@ type Options struct {
 	// Function to acquire a lock preventing concurrent file changes by handler
 	// logic.
 	AcquireLock func()
+
+	// Interface for reporting metrics.
+	Metrics MetricsReporter
 }
 
 type Attempt struct {
@@ -65,6 +72,7 @@ func New(opts Options) (*Attempt, error) {
 		SourceFile: o.opts.ChangedFile,
 		BaseDir:    o.opts.BaseDir,
 		Command:    o.opts.Config.Command,
+		Metrics:    o.opts.Metrics,
 	}); err != nil {
 		return nil, err
 	} else {

@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hansmi/baamhackl/internal/config"
 	"github.com/hansmi/baamhackl/internal/service"
+	"github.com/hansmi/baamhackl/internal/testutil"
 	"github.com/hansmi/baamhackl/internal/watchman"
 )
 
@@ -128,4 +129,27 @@ func TestRouterMultipleChanges(t *testing.T) {
 		}
 		h.mu.Unlock()
 	}
+}
+
+func TestRouterMetrics(t *testing.T) {
+	r := newRouter(routerOptions{
+		handlers: []*config.Handler{
+			{Name: "first", Path: t.TempDir()},
+			{Name: "second", Path: t.TempDir()},
+		},
+	})
+
+	testutil.CollectAndCompare(t, r.metrics(), `
+		# HELP baamhackl_file_changes_total Number of reported file changes.
+		# TYPE baamhackl_file_changes_total counter
+		baamhackl_file_changes_total{handler="first"} 0
+		baamhackl_file_changes_total{handler="second"} 0
+		# HELP baamhackl_retries_total Number of retries.
+		# TYPE baamhackl_retries_total counter
+		baamhackl_retries_total{handler="first"} 0
+		baamhackl_retries_total{handler="second"} 0
+		`,
+		"baamhackl_file_changes_total",
+		"baamhackl_retries_total",
+	)
 }

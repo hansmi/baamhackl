@@ -118,6 +118,23 @@ ${BAAMHACKL_PROGRAM} move-into /srv/shared/finished ./output.pdf
 ```
 
 
+## Prometheus metrics
+
+Baamhackl is instrumented for [Prometheus monitoring](https://prometheus.io/).
+Specify an address and port to listen on:
+
+```shell
+baamhackl watch -metrics_address 127.0.0.1:9999
+```
+
+Scrape the metrics:
+
+```shell
+$ curl -s http://localhost:9999/metrics | grep ^baamhackl_build_info
+baamhackl_build_info{[…]} 1
+```
+
+
 ## Installation
 
 [Watchman][watchman] is a required dependency. By default the `watchman`

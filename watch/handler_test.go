@@ -13,6 +13,7 @@ import (
 	"github.com/hansmi/baamhackl/internal/handlertask"
 	"github.com/hansmi/baamhackl/internal/scheduler"
 	"github.com/hansmi/baamhackl/internal/service"
+	"github.com/hansmi/baamhackl/internal/testutil"
 )
 
 var errTest = errors.New("test error")
@@ -83,24 +84,103 @@ func TestHandler(t *testing.T) {
 		attempts int
 		err      error
 		wantErr  error
+
+		metricNames []string
+		wantMetrics string
 	}{
 		{
 			name: "success",
+			metricNames: []string{
+				"retries_total",
+				"failures_total",
+				"finished_total",
+				"pending_total",
+			},
+			wantMetrics: `
+			# HELP retries_total Number of retries.
+			# TYPE retries_total counter
+			retries_total 0
+			# HELP failures_total Number of failures.
+			# TYPE failures_total counter
+			failures_total 0
+			# HELP finished_total Total number of handled changes (including failures).
+			# TYPE finished_total counter
+			finished_total 1
+			# HELP pending_total Number of currently waiting tasks.
+			# TYPE pending_total gauge
+			pending_total 0
+			`,
 		},
 		{
 			name:     "success after retries",
 			attempts: 10,
+			metricNames: []string{
+				"retries_total",
+				"failures_total",
+				"finished_total",
+				"pending_total",
+			},
+			wantMetrics: `
+			# HELP retries_total Number of retries.
+			# TYPE retries_total counter
+			retries_total 10
+			# HELP failures_total Number of failures.
+			# TYPE failures_total counter
+			failures_total 0
+			# HELP finished_total Total number of handled changes (including failures).
+			# TYPE finished_total counter
+			finished_total 1
+			# HELP pending_total Number of currently waiting tasks.
+			# TYPE pending_total gauge
+			pending_total 0
+			`,
 		},
 		{
 			name:    "failure",
 			err:     errTest,
 			wantErr: errTest,
+			metricNames: []string{
+				"retries_total",
+				"failures_total",
+				"finished_total",
+				"pending_total",
+			},
+			wantMetrics: `
+			# HELP retries_total Number of retries.
+			# TYPE retries_total counter
+			retries_total 0
+			# HELP failures_total Number of failures.
+			# TYPE failures_total counter
+			failures_total 1
+			# HELP finished_total Total number of handled changes (including failures).
+			# TYPE finished_total counter
+			finished_total 1
+			# HELP pending_total Number of currently waiting tasks.
+			# TYPE pending_total gauge
+			pending_total 0
+			`,
 		},
 		{
 			name:     "failure after retries",
 			attempts: 10,
 			err:      errTest,
 			wantErr:  errTest,
+			metricNames: []string{
+				"retries_total",
+				"failures_total",
+				"finished_total",
+			},
+			wantMetrics: `
+			# HELP retries_total Number of retries.
+			# TYPE retries_total counter
+			retries_total 10
+			# HELP failures_total Number of failures.
+			# TYPE failures_total counter
+			failures_total 1
+			# HELP finished_total Total number of handled changes (including failures).
+			# TYPE finished_total counter
+			finished_total 1
+			`,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -147,6 +227,8 @@ func TestHandler(t *testing.T) {
 				t.Errorf("Pending tasks diff (-want +got):\n%s", diff)
 			}
 			h.mu.Unlock()
+
+			testutil.CollectAndCompare(t, h.metrics(), tc.wantMetrics, tc.metricNames...)
 		})
 	}
 }
