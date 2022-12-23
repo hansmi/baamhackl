@@ -45,9 +45,12 @@ jobs:
             goreleaser_args=( --skip-publish --snapshot )
           fi
 
-          echo "docker_login=${docker_login}" >> $GITHUB_OUTPUT
-          echo "goreleaser_command=${goreleaser_command}" >> $GITHUB_OUTPUT
-          echo "goreleaser_args=${goreleaser_args[*]}" >> $GITHUB_OUTPUT
+          {
+            echo "artifact_name_prefix=${GITHUB_REPOSITORY##*/}-${GITHUB_SHA::8}-"
+            echo "docker_login=${docker_login}"
+            echo "goreleaser_command=${goreleaser_command}"
+            echo "goreleaser_args=${goreleaser_args[*]}"
+          } >> $GITHUB_OUTPUT
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
@@ -69,7 +72,7 @@ jobs:
       - name: Upload assets
         uses: actions/upload-artifact@v3
         with:
-          name: baamhackl-${{ hashFiles('dist/**') }}
+          name: ${{ steps.vars.outputs.artifact_name_prefix }}${{ hashFiles('dist/**') }}
           path: dist/**
           if-no-files-found: error
 
