@@ -5,72 +5,13 @@ on:
   pull_request:
   push:
 
-permissions:
-  contents: write
-  packages: write
+permissions: {}
 
 jobs:
   release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          # Required by GoReleaser
-          fetch-depth: 0
+    uses: hansmi/ghactions-goreleaser-workflow/.github/workflows/release.yaml@v1
+    permissions:
+      contents: write
+      packages: write
 
-      - name: Go setup
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1
-
-      - name: Set variables
-        id: vars
-        run: |
-          shopt -s extglob
-
-          docker_login=
-          goreleaser_command=build
-          goreleaser_args=( --single-target --snapshot )
-
-          if [[ "${GITHUB_EVENT_NAME:?}" = +(push|workflow_dispatch) && "${GITHUB_REF:?}" = refs/tags/v[0-9]*.* ]]; then
-            docker_login=true
-            goreleaser_command=release
-            goreleaser_args=()
-          elif [[ "${GITHUB_REF:?}" = +(refs/heads/main|refs/tags/*) ]]; then
-            goreleaser_command=release
-            goreleaser_args=( --skip-publish --snapshot )
-          fi
-
-          {
-            echo "artifact_name_prefix=${GITHUB_REPOSITORY##*/}-${GITHUB_SHA::8}-"
-            echo "docker_login=${docker_login}"
-            echo "goreleaser_command=${goreleaser_command}"
-            echo "goreleaser_args=${goreleaser_args[*]}"
-          } | tee -a $GITHUB_OUTPUT
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        if: steps.vars.outputs.docker_login
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v4
-        with:
-          distribution: goreleaser
-          version: latest
-          args: ${{ steps.vars.outputs.goreleaser_command }} --rm-dist ${{ steps.vars.outputs.goreleaser_args }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload assets
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ steps.vars.outputs.artifact_name_prefix }}${{ hashFiles('dist/**') }}
-          path: dist/**
-          if-no-files-found: error
-
-# vim: set sw=2 sts=2 et : -->
+# vim: set sw=2 sts=2 et :
