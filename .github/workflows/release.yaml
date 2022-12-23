@@ -26,9 +26,6 @@ jobs:
 
       - name: Set variables
         id: vars
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          REF: ${{ github.ref }}
         run: |
           shopt -s extglob
 
@@ -36,11 +33,11 @@ jobs:
           goreleaser_command=build
           goreleaser_args=( --single-target --snapshot )
 
-          if [[ "$EVENT_NAME" = +(push|workflow_dispatch) && "$REF" = refs/tags/v[0-9]*.* ]]; then
+          if [[ "${GITHUB_EVENT_NAME:?}" = +(push|workflow_dispatch) && "${GITHUB_REF:?}" = refs/tags/v[0-9]*.* ]]; then
             docker_login=true
             goreleaser_command=release
             goreleaser_args=()
-          elif [[ "$REF" = +(refs/heads/main|refs/tags/*) ]]; then
+          elif [[ "${GITHUB_REF:?}" = +(refs/heads/main|refs/tags/*) ]]; then
             goreleaser_command=release
             goreleaser_args=( --skip-publish --snapshot )
           fi
