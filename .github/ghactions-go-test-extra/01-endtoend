@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e -u -o pipefail
+
+sudo apt-get --no-install-recommends --yes install watchman
+
+go build
+
+go test -v -tags endtoend ./endtoend/... -- "${PWD}/baamhackl"
+
+# vim: set sw=2 sts=2 et :
