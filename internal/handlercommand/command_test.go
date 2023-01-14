@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"time"
 
@@ -36,6 +37,9 @@ var fakeCommand = cmdemu.Command{
 
 			case "exit-99":
 				return cmdemu.ExitCodeError(99)
+
+			case "fatal-signal":
+				return testutil.Raise(syscall.SIGKILL)
 			}
 		}
 
@@ -111,6 +115,11 @@ func TestRunCommand(t *testing.T) {
 			name:     "failure",
 			args:     fakeCommand.MakeArgs("exit-99"),
 			wantCode: 99,
+		},
+		{
+			name:     "signal",
+			args:     fakeCommand.MakeArgs("fatal-signal"),
+			wantCode: -1,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -256,6 +265,19 @@ func TestRun(t *testing.T) {
 			wantMetrics: fakeMetrics{
 				Count:    1,
 				ExitCode: ref.Ref(99),
+			},
+		},
+		{
+			name: "command signal",
+			opts: Options{
+				SourceFile: testutil.MustWriteFile(t, filepath.Join(t.TempDir(), "src"), "source"),
+				BaseDir:    t.TempDir(),
+				Command:    fakeCommand.MakeArgs("fatal-signal"),
+			},
+			wantErr: cmpopts.AnyError,
+			wantMetrics: fakeMetrics{
+				Count:    1,
+				ExitCode: ref.Ref(-1),
 			},
 		},
 		{
