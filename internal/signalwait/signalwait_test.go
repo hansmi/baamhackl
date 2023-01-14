@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/hansmi/baamhackl/internal/testutil"
 )
 
 var sigs = []os.Signal{
@@ -22,10 +23,8 @@ var sigs = []os.Signal{
 func sendToSelf(t *testing.T, sig os.Signal) {
 	t.Helper()
 
-	if proc, err := os.FindProcess(os.Getpid()); err != nil {
-		t.Fatalf("FindProcess() failed: %v", err)
-	} else if err := proc.Signal(sig); err != nil {
-		t.Fatalf("Signal() failed: %v", err)
+	if err := testutil.Raise(sig); err != nil {
+		t.Fatal(err)
 	}
 }
 
