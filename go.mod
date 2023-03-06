@@ -2,10 +2,16 @@ module github.com/hansmi/baamhackl
 
 go 1.19
 
+// go-yaml 1.10 fails to build on 32 bit platforms: "cannot use math.MaxInt64
+// […] as int value in assignment".
+//
+// https://github.com/goccy/go-yaml/pull/350
+exclude github.com/goccy/go-yaml v1.10.0
+
 require (
 	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/go-playground/validator/v10 v10.11.2
-	github.com/goccy/go-yaml v1.10.0
+	github.com/goccy/go-yaml v1.9.8
 	github.com/gofrs/flock v0.8.1
 	github.com/google/go-cmp v0.5.9
 	github.com/google/subcommands v1.2.0
