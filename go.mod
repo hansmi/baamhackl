@@ -18,7 +18,7 @@ require (
 	github.com/jonboulle/clockwork v0.3.0
 	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/prometheus/client_golang v1.14.0
-	github.com/prometheus/common v0.41.0
+	github.com/prometheus/common v0.42.0
 	github.com/rivo/uniseg v0.4.4
 	github.com/spf13/afero v1.9.5
 	go.uber.org/multierr v1.9.0
