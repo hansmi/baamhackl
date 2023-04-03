@@ -15,7 +15,7 @@ require (
 	github.com/gofrs/flock v0.8.1
 	github.com/google/go-cmp v0.5.9
 	github.com/google/subcommands v1.2.0
-	github.com/jonboulle/clockwork v0.3.0
+	github.com/jonboulle/clockwork v0.4.0
 	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/prometheus/client_golang v1.14.0
 	github.com/prometheus/common v0.42.0
