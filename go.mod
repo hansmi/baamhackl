@@ -10,7 +10,7 @@ exclude github.com/goccy/go-yaml v1.10.0
 
 require (
 	github.com/cenkalti/backoff/v4 v4.2.1
-	github.com/go-playground/validator/v10 v10.12.0
+	github.com/go-playground/validator/v10 v10.13.0
 	github.com/goccy/go-yaml v1.11.0
 	github.com/gofrs/flock v0.8.1
 	github.com/google/go-cmp v0.5.9
@@ -35,7 +35,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/leodido/go-urn v1.2.2 // indirect
+	github.com/leodido/go-urn v1.2.3 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
