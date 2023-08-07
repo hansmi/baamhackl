@@ -10,7 +10,7 @@ exclude github.com/goccy/go-yaml v1.10.0
 
 require (
 	github.com/cenkalti/backoff/v4 v4.2.1
-	github.com/go-playground/validator/v10 v10.14.1
+	github.com/go-playground/validator/v10 v10.15.0
 	github.com/goccy/go-yaml v1.11.0
 	github.com/gofrs/flock v0.8.1
 	github.com/google/go-cmp v0.5.9
