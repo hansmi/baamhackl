@@ -20,7 +20,7 @@ require (
 	github.com/prometheus/client_golang v1.16.0
 	github.com/prometheus/common v0.44.0
 	github.com/rivo/uniseg v0.4.4
-	github.com/spf13/afero v1.9.5
+	github.com/spf13/afero v1.10.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.26.0
 	golang.org/x/sync v0.3.0
