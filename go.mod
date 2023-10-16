@@ -13,7 +13,7 @@ require (
 	github.com/go-playground/validator/v10 v10.15.5
 	github.com/goccy/go-yaml v1.11.2
 	github.com/gofrs/flock v0.8.1
-	github.com/google/go-cmp v0.5.9
+	github.com/google/go-cmp v0.6.0
 	github.com/google/subcommands v1.2.0
 	github.com/jonboulle/clockwork v0.4.0
 	github.com/mitchellh/go-wordwrap v1.0.1
