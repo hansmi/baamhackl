@@ -48,6 +48,6 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/google/renameio/v2 v2.0.0
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	golang.org/x/crypto v0.16.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 )
