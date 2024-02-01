@@ -19,7 +19,7 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/prometheus/client_golang v1.18.0
 	github.com/prometheus/common v0.45.0
-	github.com/rivo/uniseg v0.4.4
+	github.com/rivo/uniseg v0.4.6
 	github.com/spf13/afero v1.11.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.26.0
