@@ -10,7 +10,7 @@ exclude github.com/goccy/go-yaml v1.10.0
 
 require (
 	github.com/cenkalti/backoff/v4 v4.2.1
-	github.com/go-playground/validator/v10 v10.17.0
+	github.com/go-playground/validator/v10 v10.18.0
 	github.com/goccy/go-yaml v1.11.3
 	github.com/gofrs/flock v0.8.1
 	github.com/google/go-cmp v0.6.0
@@ -31,14 +31,14 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/leodido/go-urn v1.2.4 // indirect
+	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
-	golang.org/x/net v0.20.0 // indirect
+	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 )
@@ -47,6 +47,6 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/google/renameio/v2 v2.0.0
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	golang.org/x/crypto v0.18.0 // indirect
+	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 )
