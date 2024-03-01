@@ -87,7 +87,7 @@ func TestCopyInner(t *testing.T) {
 
 			var dst strings.Builder
 
-			if _, err := copyInner(&fileWrapper{
+			if perm, err := copyInner(&fileWrapper{
 				File:        src,
 				readHandler: tc.readHandler,
 			}, &dst); err == nil {
@@ -95,13 +95,8 @@ func TestCopyInner(t *testing.T) {
 					t.Errorf("copyInner() failed with %q, Want match for %q", err, tc.wantErr)
 				}
 
-				st, err := os.Stat(srcPath)
-				if err != nil {
-					t.Errorf("Stat() failed: %v", err)
-				}
-
-				if got := st.Mode() & os.ModePerm; got != tc.wantPerm {
-					t.Errorf("Got source permission %04o, want %04o", got, tc.wantPerm)
+				if perm != tc.wantPerm {
+					t.Errorf("Got source permission %04o, want %04o", perm, tc.wantPerm)
 				}
 
 				if diff := cmp.Diff(content, dst.String()); diff != "" {

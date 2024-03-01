@@ -33,14 +33,14 @@ func copyInner(src sourceReader, dest io.Writer) (os.FileMode, error) {
 		return 0, fmt.Errorf("copied %d bytes while source has %d bytes", copiedBytes, srcStatBefore.Size())
 	}
 
-	return srcStatBefore.Mode(), nil
+	return srcStatBefore.Mode() & os.ModePerm, nil
 }
 
 type CopyOptions struct {
 	SourcePath         string
 	SourceFlags        int
 	SourceMode         os.FileMode
-	SourceModePreserve bool
+	SourcePermPreserve bool
 
 	DestPath  string
 	DestFlags int
@@ -50,7 +50,7 @@ type CopyOptions struct {
 
 var DefaultCopyOptions = CopyOptions{
 	SourceFlags:        os.O_RDONLY | syscall.O_NOFOLLOW,
-	SourceModePreserve: true,
+	SourcePermPreserve: true,
 
 	DestFlags: os.O_WRONLY | os.O_CREATE | os.O_TRUNC | syscall.O_NOFOLLOW,
 	DestMode:  0o666,
@@ -83,10 +83,10 @@ func Copy(opts CopyOptions) (err error) {
 		return err
 	}
 
-	if sourceMode, err := copyInner(src, dest); err != nil {
+	if sourcePerm, err := copyInner(src, dest); err != nil {
 		return err
-	} else if opts.SourceModePreserve {
-		if err := dest.Chmod(sourceMode & os.ModePerm); err != nil {
+	} else if opts.SourcePermPreserve {
+		if err := dest.Chmod(sourcePerm); err != nil {
 			return err
 		}
 	}
