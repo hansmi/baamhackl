@@ -11,26 +11,25 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-type fileWrapper struct {
-	*os.File
-
-	readHandler func(*os.File, []byte) (int, error)
+type fakeSourceReader struct {
+	stat func() (os.FileInfo, error)
+	read func([]byte) (int, error)
 }
 
-func (r *fileWrapper) Read(p []byte) (int, error) {
-	if r.readHandler != nil {
-		return r.readHandler(r.File, p)
-	}
+func (r *fakeSourceReader) Stat() (os.FileInfo, error) {
+	return r.stat()
+}
 
-	return r.File.Read(p)
+func (r *fakeSourceReader) Read(p []byte) (int, error) {
+	return r.read(p)
 }
 
 func TestCopyInner(t *testing.T) {
 	for _, tc := range []struct {
-		name        string
-		readHandler func(*os.File, []byte) (int, error)
-		wantErr     *regexp.Regexp
-		wantPerm    os.FileMode
+		name     string
+		read     func(*os.File, []byte) (int, error)
+		wantErr  *regexp.Regexp
+		wantPerm os.FileMode
 	}{
 		{
 			name:     "normal",
@@ -38,7 +37,7 @@ func TestCopyInner(t *testing.T) {
 		},
 		{
 			name: "unepxected eof",
-			readHandler: func(*os.File, []byte) (int, error) {
+			read: func(*os.File, []byte) (int, error) {
 				return 0, io.ErrUnexpectedEOF
 			},
 			wantErr:  regexp.MustCompile(`unexpected EOF`),
@@ -46,7 +45,7 @@ func TestCopyInner(t *testing.T) {
 		},
 		{
 			name: "modify source",
-			readHandler: func(f *os.File, p []byte) (int, error) {
+			read: func(f *os.File, p []byte) (int, error) {
 				f2, err := os.OpenFile(f.Name(), os.O_WRONLY, 0644)
 				if err != nil {
 					return 0, err
@@ -85,14 +84,22 @@ func TestCopyInner(t *testing.T) {
 
 			defer src.Close()
 
+			reader := fakeSourceReader{
+				stat: src.Stat,
+				read: src.Read,
+			}
+
+			if tc.read != nil {
+				reader.read = func(p []byte) (int, error) {
+					return tc.read(src, p)
+				}
+			}
+
 			var dst strings.Builder
 
-			if perm, err := copyInner(&fileWrapper{
-				File:        src,
-				readHandler: tc.readHandler,
-			}, &dst); err == nil {
+			if perm, err := copyInner(&reader, &dst); err == nil {
 				if tc.wantErr != nil {
-					t.Errorf("copyInner() failed with %q, Want match for %q", err, tc.wantErr)
+					t.Errorf("copyInner() failed with %q, want match for %q", err, tc.wantErr)
 				}
 
 				if perm != tc.wantPerm {
