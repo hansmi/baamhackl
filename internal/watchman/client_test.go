@@ -85,12 +85,12 @@ func TestRunClient(t *testing.T) {
 
 			if err := runClient(context.Background(), args, nil); tc.wantErr == nil {
 				if err != nil {
-					t.Errorf("run() failed: %v", err)
+					t.Errorf("runClient() failed: %v", err)
 				}
 			} else if err == nil {
-				t.Errorf("run() succeeded and doesn't match %q", tc.wantErr.String())
+				t.Errorf("runClient() succeeded and doesn't match %q", tc.wantErr.String())
 			} else if !tc.wantErr.MatchString(err.Error()) {
-				t.Errorf("run() failed and doesn't match %q: %v", tc.wantErr.String(), err)
+				t.Errorf("runClient() failed and doesn't match %q: %v", tc.wantErr.String(), err)
 			}
 		})
 	}
