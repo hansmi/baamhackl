@@ -67,7 +67,6 @@ func TestCopyInner(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tmpdir := t.TempDir()
 			srcPath := filepath.Join(tmpdir, "src")
-			dstPath := filepath.Join(tmpdir, "dst")
 
 			content := strings.Repeat("Test content\n", 32*1024)
 
@@ -86,17 +85,12 @@ func TestCopyInner(t *testing.T) {
 
 			defer src.Close()
 
-			dst, err := os.Create(dstPath)
-			if err != nil {
-				t.Fatalf("Create() failed: %v", err)
-			}
-
-			defer dst.Close()
+			var dst strings.Builder
 
 			if _, err := copyInner(&fileWrapper{
 				File:        src,
 				readHandler: tc.readHandler,
-			}, dst); err == nil {
+			}, &dst); err == nil {
 				if tc.wantErr != nil {
 					t.Errorf("copyInner() failed with %q, Want match for %q", err, tc.wantErr)
 				}
@@ -107,12 +101,10 @@ func TestCopyInner(t *testing.T) {
 				}
 
 				if got := st.Mode() & os.ModePerm; got != tc.wantPerm {
-					t.Errorf("Got destination permission %04o, want %04o", got, tc.wantPerm)
+					t.Errorf("Got source permission %04o, want %04o", got, tc.wantPerm)
 				}
 
-				if got, err := os.ReadFile(dstPath); err != nil {
-					t.Errorf("ReadFile() failed: %v", err)
-				} else if diff := cmp.Diff(content, string(got)); diff != "" {
+				if diff := cmp.Diff(content, dst.String()); diff != "" {
 					t.Errorf("Content diff (-want +got):\n%s", diff)
 				}
 			} else if tc.wantErr == nil || !tc.wantErr.MatchString(err.Error()) {
