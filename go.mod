@@ -9,7 +9,7 @@ go 1.19
 exclude github.com/goccy/go-yaml v1.10.0
 
 require (
-	github.com/cenkalti/backoff/v4 v4.2.1
+	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.18.0
 	github.com/goccy/go-yaml v1.11.3
 	github.com/gofrs/flock v0.8.1
