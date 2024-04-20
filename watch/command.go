@@ -24,8 +24,8 @@ import (
 	"github.com/hansmi/baamhackl/internal/watchmantrigger"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/collectors/version"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/version"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 )
