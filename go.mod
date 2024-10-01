@@ -19,7 +19,7 @@ require (
 	github.com/google/subcommands v1.2.0
 	github.com/jonboulle/clockwork v0.4.0
 	github.com/mitchellh/go-wordwrap v1.0.1
-	github.com/prometheus/client_golang v1.20.2
+	github.com/prometheus/client_golang v1.20.4
 	github.com/rivo/uniseg v0.4.7
 	github.com/spf13/afero v1.11.0
 	go.uber.org/multierr v1.11.0
