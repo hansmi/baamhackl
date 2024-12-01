@@ -13,7 +13,7 @@ exclude github.com/goccy/go-yaml v1.10.0
 require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.23.0
-	github.com/goccy/go-yaml v1.13.2
+	github.com/goccy/go-yaml v1.15.4
 	github.com/gofrs/flock v0.12.1
 	github.com/google/go-cmp v0.6.0
 	github.com/google/subcommands v1.2.0
@@ -37,7 +37,6 @@ require (
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
@@ -48,8 +47,6 @@ require (
 )
 
 require (
-	github.com/fatih/color v1.18.0 // indirect
 	github.com/google/renameio/v2 v2.0.0
-	github.com/mattn/go-colorable v0.1.13 // indirect
 	golang.org/x/crypto v0.28.0 // indirect
 )
