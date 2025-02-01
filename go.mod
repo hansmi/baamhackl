@@ -21,7 +21,7 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rivo/uniseg v0.4.7
-	github.com/spf13/afero v1.11.0
+	github.com/spf13/afero v1.12.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/sync v0.10.0
@@ -43,7 +43,7 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
-	google.golang.org/protobuf v1.34.2 // indirect
+	google.golang.org/protobuf v1.36.1 // indirect
 )
 
 require (
