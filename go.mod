@@ -24,7 +24,7 @@ require (
 	github.com/spf13/afero v1.12.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/sync v0.10.0
+	golang.org/x/sync v0.11.0
 	golang.org/x/sys v0.30.0
 )
 
