@@ -2,7 +2,7 @@ module github.com/hansmi/baamhackl
 
 go 1.23.0
 
-toolchain go1.23.7
+toolchain go1.24.1
 
 // go-yaml 1.10 fails to build on 32 bit platforms: "cannot use math.MaxInt64
 // […] as int value in assignment".
@@ -24,7 +24,7 @@ require (
 	github.com/spf13/afero v1.12.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/sync v0.11.0
+	golang.org/x/sync v0.12.0
 	golang.org/x/sys v0.30.0
 )
 
