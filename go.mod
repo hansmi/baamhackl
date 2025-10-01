@@ -1,6 +1,6 @@
 module github.com/hansmi/baamhackl
 
-go 1.23.0
+go 1.24.0
 
 toolchain go1.24.1
 
@@ -24,7 +24,7 @@ require (
 	github.com/spf13/afero v1.14.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/sync v0.16.0
+	golang.org/x/sync v0.17.0
 	golang.org/x/sys v0.35.0
 )
 
