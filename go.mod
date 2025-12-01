@@ -46,6 +46,6 @@ require (
 )
 
 require (
-	github.com/google/renameio/v2 v2.0.0
+	github.com/google/renameio/v2 v2.0.1
 	golang.org/x/crypto v0.45.0 // indirect
 )
