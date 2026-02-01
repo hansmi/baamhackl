@@ -1,8 +1,6 @@
 module github.com/hansmi/baamhackl
 
-go 1.24.0
-
-toolchain go1.24.1
+go 1.25
 
 // go-yaml 1.10 fails to build on 32 bit platforms: "cannot use math.MaxInt64
 // […] as int value in assignment".
@@ -46,6 +44,6 @@ require (
 )
 
 require (
-	github.com/google/renameio/v2 v2.0.1
+	github.com/google/renameio/v2 v2.0.2
 	golang.org/x/crypto v0.46.0 // indirect
 )
