@@ -17,7 +17,7 @@ require (
 	github.com/google/subcommands v1.2.0
 	github.com/jonboulle/clockwork v0.5.0
 	github.com/mitchellh/go-wordwrap v1.0.1
-	github.com/prometheus/client_golang v1.24.1
+	github.com/prometheus/client_golang v1.25.0
 	github.com/rivo/uniseg v0.4.7
 	github.com/spf13/afero v1.15.0
 	go.uber.org/multierr v1.11.0
@@ -35,11 +35,11 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/leodido/go-urn v1.5.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.70.1 // indirect
-	github.com/prometheus/procfs v0.21.1 // indirect
+	github.com/prometheus/client_model v0.6.3 // indirect
+	github.com/prometheus/common v0.72.0 // indirect
+	github.com/prometheus/procfs v0.22.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 )
 
 require (
